@@ -1,0 +1,1725 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#020617">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="배드민턴 랠리">
+<meta name="format-detection" content="telephone=no">
+<title>북한산 배드민턴 랠리 클럽</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<!-- Tailwind CSS (Play CDN) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Chart.js 4.4.1 -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+<style>
+  :root { --acc:#a3e635; --ok:#34d399; --try:#fb923c; --gold:#facc15; color-scheme: dark; }
+  [hidden] { display: none !important; }
+  html, body { -webkit-tap-highlight-color: transparent; overscroll-behavior-y: contain; }
+  body { touch-action: manipulation; font-family: "Pretendard", "SamsungOne", "Noto Sans KR", "Apple SD Gothic Neo", system-ui, sans-serif; background:#020617; color:#f1f5f9; -webkit-text-size-adjust:100%; }
+  .card { background:#0f172a; border:1px solid #1e293b; border-radius:1rem; }
+  .inp { width:100%; background:#020617; border:1px solid #334155; border-radius:.75rem; padding:.6rem .75rem; color:#f1f5f9; font-size:16px; min-height:48px; }
+  .inp:focus { outline:none; border-color:#a3e635; box-shadow:0 0 0 3px rgba(163,230,53,.22); }
+  input[type=date].inp, input[type=time].inp { color-scheme: dark; }
+  .fld { display:flex; flex-direction:column; gap:.35rem; font-size:.82rem; color:#94a3b8; }
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:.35rem; min-height:48px; padding:.5rem .9rem; border-radius:.8rem; background:#1e293b; color:#e2e8f0; font-weight:700; border:1px solid #334155; transition:transform .06s, background .15s; user-select:none; -webkit-user-select:none; }
+  .btn:active { transform:scale(.95); background:#334155; }
+  .btn:disabled { opacity:.38; pointer-events:none; }
+  .btn-primary { background:#4d7c0f; border-color:#84cc16; color:#fff; }
+  .btn-primary:active { background:#3f6212; }
+  .btn-ok { background:#059669; border-color:#10b981; color:#fff; }
+  .btn-ok:active { background:#047857; }
+  .btn-warn { background:#c2410c; border-color:#fb923c; color:#fff; }
+  .btn-warn:active { background:#9a3412; }
+  .btn-danger { background:#9f1239; border-color:#e11d48; color:#fff; }
+  .btn-sm { min-height:40px; padding:.3rem .7rem; font-size:.85rem; border-radius:.65rem; }
+  .btn.on { background:#365314; border-color:#a3e635; color:#ecfccb; }
+  .icon-btn { width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; border-radius:.8rem; background:#1e293b; border:1px solid #334155; font-size:1.15rem; flex:none; }
+  .icon-btn:active { transform:scale(.94); }
+  .seg { display:inline-flex; background:#020617; border:1px solid #334155; border-radius:.8rem; padding:3px; gap:3px; flex-wrap:wrap; }
+  .seg-btn { min-height:42px; padding:.3rem .75rem; border-radius:.6rem; color:#94a3b8; font-weight:700; font-size:.9rem; }
+  .seg-btn.on { background:#1e293b; color:#fff; box-shadow: inset 0 0 0 1px #475569; }
+  .chip { display:inline-flex; align-items:center; gap:.35rem; padding:.3rem .7rem; border-radius:999px; font-size:.78rem; font-weight:700; border:1px solid #334155; background:#0f172a; white-space:nowrap; }
+  .avatar { display:inline-block; vertical-align:middle; }
+  /* 진행 막대 · 타이머 */
+  .pbar { height:12px; border-radius:999px; background:rgba(255,255,255,.08); overflow:hidden; }
+  .pbar > div { height:100%; border-radius:999px; background:linear-gradient(90deg,#65a30d,#a3e635,#facc15); transition:width .15s; }
+  .ring-wrap { position:relative; width:230px; height:230px; flex:none; }
+  .ring-wrap svg { transform:rotate(-90deg); }
+  .ring-txt { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .alarm-ring { animation: alarm 1s infinite; }
+  @keyframes alarm { 0%,100%{transform:rotate(0)} 20%{transform:rotate(-14deg)} 40%{transform:rotate(14deg)} 60%{transform:rotate(-8deg)} 80%{transform:rotate(8deg)} }
+  /* 캘린더 */
+  .cal-cell { position:relative; aspect-ratio:1/1; border-radius:.7rem; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#0b1222; border:1px solid #162033; overflow:hidden; }
+  @media (min-width:600px) and (max-width:1023px){ .cal-cell { aspect-ratio: 5/4; } }
+  .cal-cell.out { opacity:.35; }
+  .cal-cell.today { box-shadow: inset 0 0 0 2px #facc15; }
+  .t0 { background:rgba(251,146,60,.13); border-color:rgba(251,146,60,.4); }
+  .t1 { background:rgba(52,211,153,.16); border-color:rgba(52,211,153,.42); }
+  .t2 { background:rgba(52,211,153,.32); border-color:rgba(52,211,153,.6); }
+  .t4 { background:rgba(250,204,21,.24); border-color:rgba(250,204,21,.65); }
+  .cal-num-sm { position:absolute; top:1px; left:4px; font-size:9.5px; color:#cbd5e1; font-weight:700; text-shadow:0 1px 2px #000; }
+  .cal-ach { font-size:clamp(1.15rem, 6vw, 1.75rem); font-weight:900; line-height:1; font-variant-numeric:tabular-nums; margin-top:4px; }
+  .t0 .cal-ach { color:#fdba74; } .t1 .cal-ach, .t2 .cal-ach { color:#6ee7b7; } .t4 .cal-ach { color:#fde047; }
+  .cal-sub { font-size:9px; white-space:nowrap; letter-spacing:-.3px; color:#94a3b8; line-height:1; margin-top:1px; }
+  .cal-badges { position:absolute; top:1px; right:3px; font-size:9.5px; line-height:1; font-weight:800; color:#e2e8f0; }
+  .lg { display:inline-block; width:10px; height:10px; border-radius:3px; border:1px solid; vertical-align:-1px; }
+  /* 잔디 */
+  .heat { display:grid; grid-auto-flow:column; grid-template-rows:repeat(7, 1fr); gap:3px; }
+  .heat > i { width:100%; aspect-ratio:1/1; border-radius:3px; background:#0b1222; border:1px solid #162033; display:block; }
+  /* 업적 */
+  .badge { border-radius:1rem; border:1px solid #1e293b; background:#0b1222; padding:.7rem .5rem; text-align:center; }
+  .badge.on { border-color:rgba(163,230,53,.5); background:linear-gradient(160deg,rgba(163,230,53,.14),rgba(15,23,42,.6)); }
+  .badge:not(.on) .bi { filter:grayscale(1); opacity:.35; }
+  .bi { font-size:2rem; line-height:1.1; }
+  /* 모달 & 토스트 */
+  .modal-wrap { position:fixed; inset:0; display:flex; align-items:flex-end; justify-content:center; }
+  @media (min-width:640px){ .modal-wrap { align-items:center; padding:1rem; } }
+  .modal-backdrop { position:absolute; inset:0; background:rgba(2,6,23,.75); }
+  .modal-card { position:relative; width:100%; max-height:92vh; background:#0f172a; border:1px solid #1e293b; border-radius:1.2rem 1.2rem 0 0; display:flex; flex-direction:column; animation: up .2s ease-out; }
+  @media (min-width:640px){ .modal-card { border-radius:1.2rem; } }
+  .modal-body { overflow-y:auto; -webkit-overflow-scrolling:touch; padding-bottom:calc(1.5rem + env(safe-area-inset-bottom)); }
+  @keyframes up { from{transform:translateY(24px);opacity:.4} to{transform:none;opacity:1} }
+  .toast { padding:.65rem 1rem; border-radius:.9rem; background:#1e293b; border:1px solid #334155; font-weight:700; font-size:.9rem; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,.5); transition:opacity .3s; }
+  .toast-ok { background:#064e3b; border-color:#10b981; }
+  .toast-warn { background:#713f12; border-color:#eab308; }
+  .toast-error { background:#7f1d1d; border-color:#ef4444; }
+  .toast-party { background:linear-gradient(90deg,#3f6212,#854d0e); border-color:#facc15; font-size:1rem; }
+  .tab-btn { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; padding:.5rem 0 .45rem; font-size:.74rem; color:#94a3b8; font-weight:700; min-height:58px; justify-content:center; }
+  .tab-btn .ti { font-size:1.4rem; line-height:1; }
+  .tab-btn.on { color:#fff; }
+  .tab-btn.on .ti { transform:scale(1.08); }
+  @media (min-width:1024px){
+    .tab-btn { flex-direction:row; gap:.4rem; font-size:.9rem; padding:.55rem .75rem; border-radius:.7rem; min-height:44px; }
+    .tab-btn .ti { font-size:1.1rem; }
+    .tab-btn.on { background:#1e293b; }
+  }
+  .kpi-bar { height:8px; border-radius:999px; background:#1e293b; overflow:hidden; display:flex; }
+  .confetti { position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:300; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- ===================== 헤더 ===================== -->
+<header class="sticky top-0 z-30 bg-slate-950/95 border-b border-slate-800" style="padding-top:env(safe-area-inset-top)">
+  <div class="max-w-7xl mx-auto px-3 sm:px-4 h-14 flex items-center gap-2">
+    <div class="min-w-0 flex-1 flex items-center gap-2"><span class="text-2xl leading-none flex-none">🏸</span><div class="min-w-0 leading-tight"><div class="text-[11px] font-bold text-slate-400 tracking-wide">북한산</div><div class="font-extrabold text-[17px] tracking-tight truncate">배드민턴 랠리 클럽</div></div></div>
+    <button id="lvChip" class="chip flex-none text-lime-300 border-lime-500/40" aria-label="레벨">⭐ Lv.1</button>
+    <button id="btnInstall" hidden class="chip flex-none text-sky-300 border-sky-500/50" aria-label="홈 화면에 설치">📲</button>
+    <button id="syncChip" class="chip flex-none max-w-[26vw] overflow-hidden text-ellipsis" title="동기화 상태">📱</button>
+    <button id="btnSettings" class="icon-btn" aria-label="설정">⚙️</button>
+  </div>
+</header>
+
+<div id="sampleBanner" hidden class="max-w-7xl mx-auto px-3 sm:px-4 pt-3">
+  <div class="rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-[13px] text-amber-200 flex items-center gap-2">
+    <span class="flex-1">🧪 샘플 데이터 표시 중 — 실제 운동을 시작하기 전에 삭제하세요</span>
+    <button id="btnClearSample" class="btn btn-sm">샘플 삭제</button>
+  </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-3 sm:px-4 pt-3 pb-28 lg:pb-10 lg:grid lg:grid-cols-[360px_minmax(0,1fr)] xl:grid-cols-[400px_minmax(0,1fr)] lg:gap-6">
+
+  <!-- ===================== 메인: 달성 횟수 캘린더 ===================== -->
+  <aside class="lg:sticky lg:top-20 lg:self-start mb-3 lg:mb-0">
+    <div class="card p-2.5 sm:p-4">
+      <div class="flex items-center gap-2 mb-2">
+        <button id="calPrev" class="icon-btn" aria-label="이전 달">‹</button>
+        <div class="flex-1 text-center min-w-0">
+          <div id="calTitle" class="text-lg font-extrabold">-</div>
+          <div id="calSummary" class="text-[11px] text-slate-400 truncate">-</div>
+        </div>
+        <button id="calNext" class="icon-btn" aria-label="다음 달">›</button>
+      </div>
+      <div id="calGoal" class="mb-2 px-1"></div>
+      <div class="flex items-center justify-between mb-2 gap-2">
+        <button id="calToday" class="btn btn-sm">오늘</button>
+        <div class="text-[10.5px] text-slate-400 flex items-center gap-1.5 min-w-0 overflow-hidden whitespace-nowrap">
+          <span class="lg t0"></span>0 <span class="lg t1"></span>1 <span class="lg t2"></span>2~3 <span class="lg t4"></span>4+
+        </div>
+        <button id="calToggle" class="btn btn-sm whitespace-nowrap">접기 ▴</button>
+      </div>
+      <div class="grid grid-cols-7 gap-1 text-center text-[11px] font-bold text-slate-500 mb-1">
+        <div class="text-rose-400">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="text-sky-400">토</div>
+      </div>
+      <div id="calGrid" class="grid grid-cols-7 gap-1"></div>
+      <p class="text-[10.5px] text-slate-500 mt-2 text-center">큰 숫자 = 그날 목표 달성 횟수 · 🏆 = 그날 최고 랠리 · 날짜를 누르면 상세 기록</p>
+    </div>
+  </aside>
+
+  <main class="min-w-0">
+    <nav id="tabs" class="fixed bottom-0 inset-x-0 z-30 bg-slate-950/95 border-t border-slate-800 flex lg:static lg:bg-slate-900 lg:border lg:rounded-2xl lg:p-1 lg:mb-4 lg:gap-1" style="padding-bottom:env(safe-area-inset-bottom)">
+      <button class="tab-btn on" data-tab="run"><span class="ti">🏸</span>운동하기</button>
+      <button class="tab-btn" data-tab="stats"><span class="ti">📈</span>추세</button>
+      <button class="tab-btn" data-tab="badge"><span class="ti">🏅</span>업적</button>
+      <button class="tab-btn" data-tab="history"><span class="ti">🗂️</span>기록</button>
+    </nav>
+
+    <!-- ===================== 운동하기 ===================== -->
+    <section id="tab-run" class="space-y-3">
+      <!-- 준비 화면 -->
+      <div id="runIdle" class="space-y-3">
+        <div class="card p-3 space-y-4">
+          <div class="flex items-center gap-2">
+            <h2 class="font-extrabold text-base flex-1">🏸 오늘의 랠리 챌린지</h2>
+            <span id="iPair" class="flex items-center -space-x-2"></span>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1.5"><span class="text-sm text-slate-300 font-bold">⏱️ 운동 시간</span><span class="text-xl font-black tabular-nums"><span id="iDur">40</span><span class="text-sm text-slate-400">분</span></span></div>
+            <div class="flex items-center gap-2">
+              <button class="icon-btn" id="iDurMinus" aria-label="5분 줄이기">−</button>
+              <div class="grid grid-cols-4 gap-1.5 flex-1" id="iDurChips">
+                <button class="btn btn-sm" data-dur="30">30</button><button class="btn btn-sm" data-dur="40">40</button><button class="btn btn-sm" data-dur="50">50</button><button class="btn btn-sm" data-dur="60">60</button>
+              </div>
+              <button class="icon-btn" id="iDurPlus" aria-label="5분 늘리기">＋</button>
+            </div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1.5"><span class="text-sm text-slate-300 font-bold">🎯 목표 랠리 (연속 왕복)</span><span class="text-xl font-black tabular-nums"><span id="iTgt">250</span><span class="text-sm text-slate-400">회</span></span></div>
+            <div class="flex items-center gap-2">
+              <button class="icon-btn" id="iTgtMinus" aria-label="50회 줄이기">−</button>
+              <div class="grid grid-cols-4 gap-1.5 flex-1" id="iTgtChips">
+                <button class="btn btn-sm" data-tgt="250">250</button><button class="btn btn-sm" data-tgt="300">300</button><button class="btn btn-sm" data-tgt="350">350</button><button class="btn btn-sm" data-tgt="400">400</button>
+              </div>
+              <button class="icon-btn" id="iTgtPlus" aria-label="50회 늘리기">＋</button>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1.5">🏸 랠리 1회 = 두 사람이 각각 1번씩 실수 없이 넘긴 왕복 (타격 2회)</p>
+          </div>
+          <button id="iStart" class="btn btn-primary w-full !min-h-[68px] text-xl">▶ 운동 시작</button>
+          <button id="iBest" class="btn w-full">🏆 오늘의 최고 랠리 기록</button>
+          <div id="iInfo" class="text-[12px] text-slate-400 text-center"></div>
+        </div>
+        <div class="card p-3 flex gap-3 items-start">
+          <span class="text-2xl">💡</span>
+          <div class="min-w-0"><div class="text-[11px] text-slate-500 font-bold">오늘의 랠리 팁</div><div id="iQuote" class="text-sm text-slate-200 mt-0.5"></div></div>
+        </div>
+        <p class="text-[11px] text-slate-500 text-center px-2">▶ 운동 시작 = 운동 시간 타이머 (종료 알람 · 화면 꺼짐 방지) · 운동이 끝나면 목표 달성 횟수와 최고 랠리를 기록</p>
+      </div>
+
+      <!-- 운동 진행 화면 -->
+      <div id="runLive" hidden class="space-y-3">
+        <div class="card p-4 flex flex-col items-center gap-3">
+          <div class="ring-wrap" id="tRingWrap">
+            <svg width="230" height="230" viewBox="0 0 120 120">
+              <circle cx="60" cy="60" r="52" stroke="#1e293b" stroke-width="9" fill="none"/>
+              <circle id="tRing" cx="60" cy="60" r="52" stroke="#a3e635" stroke-width="9" fill="none" stroke-linecap="round" stroke-dasharray="326.73" stroke-dashoffset="326.73"/>
+            </svg>
+            <div class="ring-txt">
+              <div class="text-[12px] text-slate-400 font-bold" id="tLabel">남은 시간</div>
+              <div id="tRemain" class="text-[3.2rem] font-black tabular-nums leading-none">40:00</div>
+              <div id="tSub" class="text-[12px] text-slate-400 mt-1.5">목표 40분</div>
+            </div>
+          </div>
+          <div id="tState" class="text-[12px] text-center text-slate-400"></div>
+          <div class="grid grid-cols-2 gap-2 w-full">
+            <button id="tPause" class="btn w-full">⏸ 일시정지</button>
+            <button id="tExt" class="btn">＋5분 연장</button>
+          </div>
+          <button id="tEnd" class="btn btn-danger w-full !min-h-[60px] text-lg">■ 운동 종료 · 결과 기록</button>
+        </div>
+        <div class="card p-4 text-center space-y-1.5">
+          <div class="text-sm text-slate-300">🎯 오늘의 목표 랠리 (연속 왕복)</div>
+          <div class="text-4xl font-black text-lime-300 tabular-nums"><span id="lTarget">250</span><span class="text-lg text-slate-400">회</span></div>
+          <div class="text-[11px] text-slate-500">🏸 랠리 1회 = 두 사람이 각각 1번씩 실수 없이 넘긴 왕복 (타격 2회)</div>
+          <div id="lInfo" class="text-[12px] text-sky-200/80 font-bold"></div>
+          <p class="text-[11.5px] text-slate-500 pt-1">운동이 끝나면 <b class="text-slate-300">목표 달성 횟수</b>와 <b class="text-slate-300">최고 랠리</b>를 기록합니다. 몇 번 달성했는지 기억해 두세요!</p>
+        </div>
+        <div class="card p-3 flex gap-3 items-start">
+          <span class="text-2xl">💡</span>
+          <div class="min-w-0"><div class="text-[11px] text-slate-500 font-bold">랠리 팁</div><div id="lQuote" class="text-sm text-slate-200 mt-0.5"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 추세 ===================== -->
+    <section id="tab-stats" hidden class="space-y-3">
+      <div id="kpis" class="grid grid-cols-2 xl:grid-cols-4 gap-3"></div>
+      <div id="kpis2" class="grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="text-sm text-slate-400">그래프 범위</span>
+        <div class="seg" id="segRange">
+          <button class="seg-btn" data-v="20">최근 20회</button>
+          <button class="seg-btn on" data-v="60">최근 60회</button>
+          <button class="seg-btn" data-v="0">전체</button>
+        </div>
+      </div>
+      <div class="card p-3 sm:p-4">
+        <h3 class="font-bold mb-2">🏆 최고 랠리 추세 (운동일별)</h3>
+        <div id="bestKpi" class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3"></div>
+        <p class="text-[11px] text-slate-400 mb-3">막대 = 그날 최고 랠리(금색 = 최고 기록 경신일), 계단선 = 최고 기록, 실선 = 최근 5일 이동평균, 점선 = 목표 랠리</p>
+        <div class="h-64 sm:h-72"><canvas id="chBest"></canvas></div>
+        <details class="mt-3" id="pbBox"><summary class="text-sm font-bold cursor-pointer select-none">🏅 최고 기록 경신 이력 <span id="pbCount" class="text-slate-400 font-normal"></span></summary><div id="pbList" class="space-y-1.5 mt-2"></div></details>
+      </div>
+      <div class="card p-3 sm:p-4">
+        <h3 class="font-bold mb-1">🎯 회당 달성 횟수 & 최고 랠리</h3>
+        <p class="text-[11px] text-slate-400 mb-3">막대 = 달성 횟수(초록: 달성 / 주황: 미달성), 실선 = 최고 랠리(우측 축), 점선 = 목표 랠리</p>
+        <div class="h-64 sm:h-72"><canvas id="chAch"></canvas></div>
+      </div>
+      <div class="card p-3 sm:p-4">
+        <h3 class="font-bold mb-1">📅 운동 주기 — 며칠마다 운동했나</h3>
+        <p class="text-[11px] text-slate-400 mb-3">막대 = 직전 운동일로부터 경과일, 실선 = 최근 5회 이동평균</p>
+        <div class="h-56 sm:h-64"><canvas id="chGap"></canvas></div>
+      </div>
+      <div class="card p-3 sm:p-4">
+        <h3 class="font-bold mb-1">⏱️ 운동 시간</h3>
+        <p class="text-[11px] text-slate-400 mb-3">막대 = 실제 운동 시간(분), 점선 = 계획 시간, 실선 = 최근 5회 이동평균</p>
+        <div class="h-56 sm:h-64"><canvas id="chMin"></canvas></div>
+      </div>
+      <div class="grid gap-3 xl:grid-cols-2">
+        <div class="card p-3 sm:p-4">
+          <h3 class="font-bold mb-2">🌱 최근 18주 운동 잔디</h3>
+          <div id="heat"></div>
+        </div>
+        <div class="card p-3 sm:p-4">
+          <h3 class="font-bold mb-2">🗓️ 요일별 운동 횟수</h3>
+          <div class="h-48"><canvas id="chDow"></canvas></div>
+        </div>
+      </div>
+      <p id="chartNotice" hidden class="text-sm text-amber-300"></p>
+    </section>
+
+    <!-- ===================== 업적 ===================== -->
+    <section id="tab-badge" hidden class="space-y-3">
+      <div id="lvCard" class="card p-4"></div>
+      <div class="card p-3 sm:p-4">
+        <h3 class="font-bold mb-3">🏅 배지 컬렉션 <span id="bdCount" class="text-sm text-slate-400"></span></h3>
+        <div id="bdGrid" class="grid grid-cols-3 sm:grid-cols-4 xl:grid-cols-6 gap-2"></div>
+      </div>
+      <div class="card p-3 sm:p-4">
+        <h3 class="font-bold mb-2">👑 명예의 전당 — 최장 랠리 TOP 5</h3>
+        <div id="hof" class="space-y-1.5"></div>
+      </div>
+    </section>
+
+    <!-- ===================== 기록 관리 ===================== -->
+    <section id="tab-history" hidden class="space-y-3">
+      <div class="card p-3 space-y-2">
+        <div class="flex gap-2">
+          <select id="hMonth" class="inp flex-1 min-w-0"></select>
+          <button id="bBackdate" class="btn btn-primary whitespace-nowrap">＋ 소급 입력</button>
+        </div>
+      </div>
+      <div id="hCount" class="text-xs text-slate-400 px-1"></div>
+      <div id="hList" class="space-y-3"></div>
+      <div class="text-center"><button id="hMore" hidden class="btn">더 보기</button></div>
+    </section>
+  </main>
+</div>
+
+<div id="modalRoot"></div>
+<div id="toastRoot" class="fixed z-[200] left-1/2 -translate-x-1/2 bottom-24 lg:bottom-6 flex flex-col items-center gap-2 pointer-events-none w-[min(92vw,420px)]"></div>
+
+<script>
+'use strict';
+/* =====================================================================
+ * 캐릭터 (오리지널 SVG 아바타 — 젊은 동양인 할머니/할아버지)
+ * ===================================================================== */
+const SKIN = '#F6D3B0', SKIN_D = '#EBBE95', INK = '#2A211C';
+const BLACK = '#1E1B19', SHEEN = '#46403B', LIP = '#C4545A';
+const FACE_OVAL = `<ellipse cx="32" cy="31.4" rx="13.6" ry="15" fill="${SKIN}"/>`;
+/* 각진 얼굴(할아버지): 넓은 이마·각진 턱 */
+const FACE_SQUARE = `<path d="M18.6 23.4C18.6 18.4 22 15.6 26.6 15.6h10.8c4.6 0 8 2.8 8 7.8v12c0 5.6-3.4 10.4-9.2 10.8h-8.4c-5.8-.4-9.2-5.2-9.2-10.8z" fill="${SKIN}"/>`;
+const AV = {
+  grandpa: {
+    label: '할아버지 (라운드 안경·3:7 가르마)', body: '#3E5C7A', faceShape: FACE_SQUARE,
+    // 풍성한 검은 머리 · 왼쪽 30% 지점 가르마, 70% 쪽은 오른쪽으로 볼륨 있게 넘김
+    hair: `<path d="M17 29.4C15 17.4 21.6 7.6 32.4 7.6c11.4 0 17.8 8 15.4 19.6-.8-2.6-1.8-4.6-3.2-5.8-3.6 1.4-8.6.8-12.4-1.2-2.4-1.2-4.2-2.8-5-4.6-.8 2.6-2.6 4.4-5.2 5.4-1.6.6-2.8 1.8-3.4 3.4-.6 1.4-1.2 2.8-1.6 5z" fill="${BLACK}"/>
+      <path d="M27.4 8.4c-.4 3.4-.2 5.6.6 7.6" stroke="${SHEEN}" stroke-width="1" fill="none" stroke-linecap="round"/>
+      <path d="M29.6 10.6c5-1.6 10.6-.4 13.8 3.4M30.8 14.2c4.4-.8 8.8.4 11.2 3.2M21.6 13.6c-1.6 1.6-2.8 3.6-3.4 6" stroke="${SHEEN}" stroke-width="1.1" fill="none" stroke-linecap="round"/>`,
+    face: `<path d="M21.8 26.4q3.4-1.6 6.6-.2M35.6 26.2q3.2-1.4 6.6.2" stroke="${BLACK}" stroke-width="2.3" fill="none" stroke-linecap="round"/>
+      <ellipse cx="25.6" cy="31.6" rx="1.7" ry="2" fill="${INK}"/><ellipse cx="38.4" cy="31.6" rx="1.7" ry="2" fill="${INK}"/>
+      <circle cx="25.4" cy="31.6" r="4.7" fill="rgba(255,255,255,.16)" stroke="#2B2522" stroke-width="1.5"/>
+      <circle cx="38.6" cy="31.6" r="4.7" fill="rgba(255,255,255,.16)" stroke="#2B2522" stroke-width="1.5"/>
+      <path d="M30.1 31.2q1.9-1.3 3.8 0M20.7 30.6l-2.1-.6M43.3 30.6l2.1-.6" stroke="#2B2522" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+      <path d="M31.2 35.4q.8 1.4 1.8 1.2" stroke="${SKIN_D}" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+      <path d="M27.2 40q4.8 3.6 9.6 0" stroke="#A4513A" stroke-width="2" fill="none" stroke-linecap="round"/>`,
+    extra: `<path d="M26 50.5l6 5.5 6-5.5" fill="none" stroke="#F1F5F9" stroke-width="2.2" stroke-linejoin="round"/>`
+  },
+  grandpa2: {
+    label: '할아버지 (등산모)', body: '#4D6B3C', faceShape: FACE_SQUARE,
+    hair: `<path d="M19 30.4c-.6-3.6-.2-6.6 1.4-8.6M45 30.4c.6-3.6.2-6.6-1.4-8.6" stroke="${BLACK}" stroke-width="3.2" stroke-linecap="round" fill="none"/>
+      <path d="M16.2 23.6c1.2-8.6 7.6-13.4 15.8-13.4s14.6 4.8 15.8 13.4z" fill="#C4693E"/>
+      <path d="M13.2 24.6c5.6-2.4 12-3.3 18.8-3.3s13.2.9 18.8 3.3c.6.3.4 1.4-.3 1.4H13.5c-.7 0-.9-1.1-.3-1.4z" fill="#A9552F"/>`,
+    face: `<path d="M22.4 29q3-1.5 5.8.1M35.8 29.1q2.8-1.6 5.8-.1" stroke="${BLACK}" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+      <ellipse cx="25.8" cy="33.2" rx="1.7" ry="2" fill="${INK}"/><ellipse cx="38.2" cy="33.2" rx="1.7" ry="2" fill="${INK}"/>
+      <path d="M27.4 40.2q4.6 3.6 9.2 0" stroke="#A4513A" stroke-width="2" fill="none" stroke-linecap="round"/>`,
+    extra: ''
+  },
+  grandma: {
+    label: '할머니 (컬 단발)', body: '#A9557A',
+    // 턱선 길이 단발 + 끝부분 살짝 바깥으로 말린 컬
+    back: `<path d="M14.6 31.2C14.2 17.6 21.6 10.4 32 10.4s17.8 7.2 17.4 20.8l.2 8.6H14.4z" fill="${BLACK}"/>
+      <circle cx="16.4" cy="40.4" r="4.2" fill="${BLACK}"/><circle cx="21.4" cy="43" r="3.6" fill="${BLACK}"/>
+      <circle cx="47.6" cy="40.4" r="4.2" fill="${BLACK}"/><circle cx="42.6" cy="43" r="3.6" fill="${BLACK}"/>
+      <path d="M13.6 40.6c.6 2.4 2.4 3.8 4.6 3.8M50.4 40.6c-.6 2.4-2.4 3.8-4.6 3.8" stroke="${SHEEN}" stroke-width="1" fill="none" stroke-linecap="round"/>`,
+    hair: `<path d="M17.6 31.6C16.6 19.6 23.2 13.2 32.2 13.2c8.8 0 15.2 6 14.2 18-1-4.4-2.8-7.6-5.4-9.4-3.6 2.4-9.2 3.4-15 2.8-2.6 1.2-5.6 3.6-8.4 7z" fill="${BLACK}"/>
+      <path d="M24.6 16.6c3.8-1.8 9.6-1.8 13.6.8M20.4 22.4c1.6-2.4 3.6-4 6-5" stroke="${SHEEN}" stroke-width="1.1" fill="none" stroke-linecap="round"/>`,
+    face: `<ellipse cx="25.8" cy="32.8" rx="1.8" ry="2.1" fill="${INK}"/><ellipse cx="38.2" cy="32.8" rx="1.8" ry="2.1" fill="${INK}"/>
+      <path d="M23 28.2q2.8-1.2 5.4 0M35.6 28.2q2.8-1.2 5.4 0" stroke="${BLACK}" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <ellipse cx="22.6" cy="37.2" rx="2.6" ry="1.5" fill="#F28C8C" opacity=".6"/><ellipse cx="41.4" cy="37.2" rx="2.6" ry="1.5" fill="#F28C8C" opacity=".6"/>
+      <path d="M28 40q4 3.4 8 0" stroke="${LIP}" stroke-width="2.1" fill="none" stroke-linecap="round"/>`,
+    extra: `<g fill="#F8FAFC">${[[25,51.6],[28.4,53.2],[32,53.8],[35.6,53.2],[39,51.6]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="1.25"/>`).join('')}</g>`
+  },
+  grandma2: {
+    label: '할머니 (올림머리)', body: '#6D5BA8',
+    back: `<circle cx="32" cy="11.2" r="6.4" fill="${BLACK}"/><path d="M27 12h10" stroke="#C9A227" stroke-width="1.6" stroke-linecap="round"/>`,
+    hair: `<path d="M18.4 31c-1.2-10.4 5.6-16.4 13.6-16.4s14.8 6 13.6 16.4c-1-4.6-3.4-8.2-6.6-9.6-1.6 1.4-4 2.2-7 2.2s-5.4-.8-7-2.2c-3.2 1.4-5.6 5-6.6 9.6z" fill="${BLACK}"/>
+      <path d="M32 15v7.6M25 17.4c-2 1.4-3.4 3.2-4.2 5.4" stroke="${SHEEN}" stroke-width="1" fill="none" stroke-linecap="round"/>`,
+    face: `<ellipse cx="25.8" cy="33" rx="1.8" ry="2.1" fill="${INK}"/><ellipse cx="38.2" cy="33" rx="1.8" ry="2.1" fill="${INK}"/>
+      <path d="M23 28.6q2.8-1.2 5.4 0M35.6 28.6q2.8-1.2 5.4 0" stroke="${BLACK}" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <ellipse cx="22.6" cy="37.2" rx="2.6" ry="1.5" fill="#F28C8C" opacity=".6"/><ellipse cx="41.4" cy="37.2" rx="2.6" ry="1.5" fill="#F28C8C" opacity=".6"/>
+      <path d="M28 40q4 3.4 8 0" stroke="${LIP}" stroke-width="2.1" fill="none" stroke-linecap="round"/>`,
+    extra: ''
+  },
+  man: {
+    label: '남자 (짧은 머리)', body: '#334155',
+    hair: `<path d="M17.8 29c-1.4-11 5.4-17.4 14.2-17.4 8.6 0 15.2 6 14.2 16.6-1.4-3.6-3.6-6-6.4-7.2-3.4 2.4-8 3.4-13.6 3.4-3 0-5.6.8-8.4 4.6z" fill="${BLACK}"/>`,
+    face: `<path d="M22.8 28.4q3-1.2 5.8 0M35.4 28.4q3-1.2 5.8 0" stroke="${BLACK}" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <ellipse cx="25.8" cy="32.8" rx="1.8" ry="2.1" fill="${INK}"/><ellipse cx="38.2" cy="32.8" rx="1.8" ry="2.1" fill="${INK}"/>
+      <path d="M27.8 40q4.2 3.2 8.4 0" stroke="#A4513A" stroke-width="1.9" fill="none" stroke-linecap="round"/>`,
+    extra: ''
+  },
+  woman: {
+    label: '여자 (긴 생머리)', body: '#BE4B6B',
+    back: `<path d="M15.4 31c0-12 7.4-18.6 16.6-18.6S48.6 19 48.6 31v22H15.4z" fill="${BLACK}"/>`,
+    hair: `<path d="M17.6 30.4c-.2-9.6 6.2-15.2 14.4-15.2s14.6 5.6 14.4 15.2c-2.2-3.6-4.8-6-8-7.2-1.4 2.4-4.6 3.8-9 3.8-4.6 0-8.6 1.2-11.8 3.4z" fill="${BLACK}"/>`,
+    face: `<ellipse cx="25.8" cy="33" rx="1.8" ry="2.2" fill="${INK}"/><ellipse cx="38.2" cy="33" rx="1.8" ry="2.2" fill="${INK}"/>
+      <ellipse cx="22.6" cy="37.4" rx="2.4" ry="1.4" fill="#F28C8C" opacity=".55"/><ellipse cx="41.4" cy="37.4" rx="2.4" ry="1.4" fill="#F28C8C" opacity=".55"/>
+      <path d="M28.2 40.2q3.8 3 7.6 0" stroke="${LIP}" stroke-width="2" fill="none" stroke-linecap="round"/>`,
+    extra: ''
+  }
+};
+function svgAvatar(kind, bg, size) {
+  const a = AV[kind] || AV.grandpa;
+  return `<svg class="avatar" style="border-radius:50%;flex:none" width="${size}" height="${size}" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+    <rect width="64" height="64" fill="${bg}"/>
+    <g>
+      ${a.back || ''}
+      <path d="M11 66c1.6-10.4 9.6-16.4 21-16.4S51.4 55.6 53 66z" fill="${a.body}"/>
+      <path d="M27.4 42h9.2v8.4c0 2.4-2 4-4.6 4s-4.6-1.6-4.6-4z" fill="${SKIN_D}"/>
+      ${a.extra || ''}
+      <ellipse cx="18.4" cy="32.6" rx="3" ry="4" fill="${SKIN_D}"/><ellipse cx="45.6" cy="32.6" rx="3" ry="4" fill="${SKIN_D}"/>
+      ${a.faceShape || FACE_OVAL}
+      ${a.hair || ''}
+      ${a.face || ''}
+    </g>
+  </svg>`;
+}
+
+/* =====================================================================
+ * 0. 설정 상수
+ * ===================================================================== */
+const K = {
+  records: 'bd.records.v1', settings: 'bd.settings.v1', queue: 'bd.queue.v1', sess: 'bd.session.v1',
+  sample: 'bd.sample.v1', cal: 'bd.calCollapsed.v1', lastSync: 'bd.lastSync.v1', rev: 'bd.rev.v1', notif: 'bd.notifAsked.v1'
+};
+const DEFAULT_SETTINGS = {
+  p1: { name: '유진 아빠', avatar: 'svg:man' },
+  p2: { name: '유진 엄마', avatar: 'svg:woman' },
+  durationMin: 40, target: 250, monthlyGoal: 12, weightKg: 65,
+  sound: true, voice: true, vibrate: true,
+  gasUrl: '', token: ''
+};
+const SHEET_FIELDS = ['id','date','start','minutes','plan_min','target','achieved','attempts','best','total_hits','rallies','mood','memo','updated_at'];
+const MET_BADMINTON = 5.5;   // Compendium of Physical Activities 2011, code 15030 (badminton, social singles/doubles, general)
+const COURT_M = 13.4;        // BWF Laws of Badminton, Law 1 — 코트 길이 13.40 m (셔틀 1타당 이동거리 추정치)
+const C = { acc: '#a3e635', ok: '#34d399', try: '#fb923c', best: '#38bdf8', gold: '#facc15', vio: '#a78bfa', p1: '#38bdf8', p2: '#fb7185' };
+const POLL = { normal: 15000, error: 30000 };
+const SETTINGS_VERSION = 2;
+const TGT_PRESETS = [250, 300, 350, 400];
+const DUR_MIN = 10, DUR_MAX = 120, TGT_MIN = 10, TGT_MAX = 3000;
+const MOODS = ['😆', '🙂', '😐', '😮‍💨', '🤕'];
+
+/* =====================================================================
+ * 1. 유틸
+ * ===================================================================== */
+const $  = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+const num = (v, d = 0) => { const n = parseFloat(v); return Number.isFinite(n) ? n : d; };
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const round1 = n => Math.round(n * 10) / 10;
+const pad = n => String(n).padStart(2, '0');
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const todayStr = () => ymd(new Date());
+const parseYmd = s => { const [y, m, d] = String(s).split('-').map(Number); return new Date(y, (m || 1) - 1, d || 1); };
+const daysBetween = (a, b) => Math.round((parseYmd(b) - parseYmd(a)) / 86400000);
+const WD = ['일','월','화','수','목','금','토'];
+const fmtDateK = s => { const d = parseYmd(s); return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())} (${WD[d.getDay()]})`; };
+const avg = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0;
+const sum = a => a.reduce((x, y) => x + y, 0);
+const uid = () => Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+const isSample = r => String(r.id).startsWith('sample-');
+const hhmm = d => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+const mmss = ms => { const s = Math.max(0, Math.ceil(ms / 1000)); return `${pad(Math.floor(s / 60))}:${pad(s % 60)}`; };
+const fmtNum = n => Math.round(Number(n || 0)).toLocaleString('ko-KR');
+const rnd = a => a[Math.floor(Math.random() * a.length)];
+const store = {
+  get(k, def) { try { const v = localStorage.getItem(k); return v == null ? def : JSON.parse(v); } catch { return def; } },
+  set(k, v)   { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  del(k)      { try { localStorage.removeItem(k); } catch {} }
+};
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+/* =====================================================================
+ * 2. 상태 / 설정
+ * ===================================================================== */
+let settings = loadSettings();
+let records = [];
+let queue = store.get(K.queue, []);
+let sess = null;
+let calMonth = (() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1); })();
+let calCollapsed = store.get(K.cal, false);
+let activeTab = 'run';
+let statsRange = 60;
+let histMonth = 'all', histLimit = 40;
+let charts = {};
+let dayModal = null;
+let syncState = 'local', syncMsg = '';
+let lastRev = String(store.get(K.rev, ''));
+let localGen = 0;
+let shownDay = todayStr();
+
+function loadSettings() {
+  const s = store.get(K.settings, {}) || {};
+  const out = { ...DEFAULT_SETTINGS, ...s, p1: { ...DEFAULT_SETTINGS.p1, ...(s.p1 || {}) }, p2: { ...DEFAULT_SETTINGS.p2, ...(s.p2 || {}) } };
+  if ((s.v || 1) < 2) { out.p1 = { ...DEFAULT_SETTINGS.p1 }; out.p2 = { ...DEFAULT_SETTINGS.p2 }; out.target = DEFAULT_SETTINGS.target; }   // v2: 유진 아빠·엄마, 목표 250회
+  out.v = SETTINGS_VERSION;
+  return out;
+}
+function saveSettings() { store.set(K.settings, settings); }
+const durSetting = () => clamp(Math.round(num(settings.durationMin, 40)), DUR_MIN, DUR_MAX);
+const tgtSetting = () => clamp(Math.round(num(settings.target, 250)), TGT_MIN, TGT_MAX);
+const shortName = who => { const p = String(settings[who].name).trim().split(/\s+/); return p.length > 1 ? p[p.length - 1] : p[0]; };
+function avatar(val, size, bg = '#475569') {
+  const v = String(val || '');
+  if (v.startsWith('svg:')) return svgAvatar(v.slice(4), bg, size);
+  return `<span class="avatar" style="font-size:${Math.round(size * .82)}px;line-height:1">${esc(v)}</span>`;
+}
+const pAv = (who, size) => avatar(settings[who].avatar, size, C[who]);
+const pairAv = size => `<span class="inline-flex items-center -space-x-2">${pAv('p1', size)}${pAv('p2', size)}</span>`;
+const kcal = r => Math.round(MET_BADMINTON * num(settings.weightKg, 65) * num(r.minutes) / 60);
+const distKm = hits => hits * COURT_M / 1000;
+
+/* =====================================================================
+ * 3. 레코드 정규화
+ * ===================================================================== */
+function normDate(v) {
+  if (!v) return '';
+  const s = String(v);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  if (/^\d{4}-\d{2}-\d{2}T/.test(s)) { const d = new Date(s); return isNaN(d) ? s.slice(0, 10) : ymd(d); }
+  if (/^\d{4}[./]\s?\d{1,2}[./]\s?\d{1,2}/.test(s)) { const [y, m, d] = s.split(/[./]\s?/).map(Number); return `${y}-${pad(m)}-${pad(d)}`; }
+  const d = new Date(s); return isNaN(d) ? '' : ymd(d);
+}
+function normTime(v) {
+  const s = String(v ?? '').trim();
+  const m = s.match(/^(\d{1,2}):(\d{2})/); if (m) return `${pad(+m[1])}:${m[2]}`;
+  if (/T\d{2}:\d{2}/.test(s)) { const d = new Date(s); if (!isNaN(d)) return hhmm(d); }
+  return '';
+}
+const parseRallies = s => String(s ?? '').split(/[,\s/]+/).map(x => Math.round(num(x, -1))).filter(x => x >= 0);
+const int0 = v => Math.max(0, Math.round(num(v)));
+function norm(r) {
+  const x = {
+    id: String(r.id ?? uid()), date: normDate(r.date), start: normTime(r.start),
+    minutes: Math.max(0, round1(num(r.minutes))), plan_min: int0(r.plan_min),
+    target: Math.max(1, Math.round(num(r.target, 250))), achieved: int0(r.achieved), attempts: int0(r.attempts),
+    best: int0(r.best), total_hits: int0(r.total_hits), rallies: String(r.rallies ?? ''),
+    mood: String(r.mood ?? ''), memo: String(r.memo ?? ''), updated_at: String(r.updated_at ?? '')
+  };
+  const arr = parseRallies(x.rallies);
+  if (arr.length) {
+    x.rallies = arr.join(',');
+    if (!x.attempts) x.attempts = arr.length;
+    if (!x.best) x.best = Math.max(...arr);
+    if (!x.total_hits) x.total_hits = sum(arr);
+  }
+  if (x.achieved > 0 && x.best < x.target) x.best = x.target;
+  return x;
+}
+const normList = list => (Array.isArray(list) ? list : []).filter(r => r && r.id && r.date).map(norm).filter(r => r.date);
+function finalize(r) { const x = norm(r); x.updated_at = new Date().toISOString(); return x; }
+
+/* =====================================================================
+ * 4. Google Apps Script API + 오프라인 대기열 (탁구 앱과 동일 구조)
+ * ===================================================================== */
+function fetchT(url, opt, ms = 25000) { const c = new AbortController(); const t = setTimeout(() => c.abort(), ms); return fetch(url, { ...opt, signal: c.signal }).finally(() => clearTimeout(t)); }
+async function parseRes(res) {
+  const txt = await res.text(); let j;
+  try { j = JSON.parse(txt); } catch { throw new Error(res.ok ? '응답 형식 오류 (웹 앱 배포/권한 확인)' : 'HTTP ' + res.status); }
+  if (!j.ok) throw new Error(j.error || '서버 오류');
+  return j;
+}
+function netErr(e) {
+  if (e.name === 'AbortError') return new Error('응답 시간 초과');
+  if (e instanceof TypeError) return new Error('네트워크/CORS 오류 – 웹 앱 액세스 권한 "모든 사용자" 확인');
+  return e;
+}
+const api = {
+  enabled() { return !!settings.gasUrl; },
+  async get(params, url = settings.gasUrl, token = settings.token) {
+    let u; try { u = new URL(url); } catch { throw new Error('웹 앱 URL 형식 오류'); }
+    Object.entries({ ...params, token }).forEach(([k, v]) => { if (v) u.searchParams.set(k, v); });
+    u.searchParams.set('_', Date.now());
+    try { return await parseRes(await fetchT(u.toString(), { method: 'GET', redirect: 'follow', cache: 'no-store' })); } catch (e) { throw netErr(e); }
+  },
+  async post(body, url = settings.gasUrl, token = settings.token) {
+    try { return await parseRes(await fetchT(url, { method: 'POST', redirect: 'follow', cache: 'no-store', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ ...body, token }) })); }
+    catch (e) { throw netErr(e); }
+  },
+  async list() { return await this.get({ action: 'list' }); }
+};
+let syncing = false;
+function enqueue(op) { queue.push(op); store.set(K.queue, queue); flushQueue(); }
+async function flushQueue() {
+  if (!api.enabled() || !queue.length || syncing) return;
+  syncing = true; setStatus('sync');
+  const ops = queue.slice(); let ok = false;
+  try { await api.post({ action: 'batch', ops }); queue = queue.slice(ops.length); store.set(K.queue, queue); ok = true; setStatus('ok'); }
+  catch (e) { setStatus('error', e.message); }
+  finally { syncing = false; }
+  if (ok && queue.length) return flushQueue();
+}
+function applyOpsLocal(list, ops) {
+  const map = new Map(list.map(r => [r.id, r]));
+  for (const o of ops) { if (o.op === 'delete') map.delete(String(o.id)); else if (o.record) map.set(String(o.record.id), norm(o.record)); }
+  return [...map.values()];
+}
+let refreshing = false;
+async function refreshFromServer(silent = true) {
+  if (!api.enabled() || refreshing) return;
+  refreshing = true;
+  try {
+    await flushQueue();
+    if (!silent) setStatus('sync');
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const gen = localGen;
+      const res = await api.list();
+      if (gen !== localGen) continue;
+      let list = normList(res.data || []);
+      if (queue.length) list = applyOpsLocal(list, queue);
+      records = list; persistRecords();
+      if (res.rev != null) { lastRev = String(res.rev); store.set(K.rev, lastRev); }
+      store.del(K.sample); store.set(K.lastSync, Date.now());
+      if (!queue.length) setStatus('ok'); else renderStatus();
+      renderAll();
+      if (!silent) toast('Google Sheets와 동기화 완료', 'ok');
+      return;
+    }
+  } catch (e) { setStatus('error', e.message); if (!silent) toast('동기화 실패: ' + e.message, 'error'); }
+  finally { refreshing = false; }
+}
+function persistRecords() { store.set(K.records, records); }
+function saveRecord(rec) {
+  const x = finalize(rec);
+  const i = records.findIndex(r => r.id === x.id);
+  if (i >= 0) records[i] = x; else records.push(x);
+  localGen++; persistRecords(); renderAll();
+  if (api.enabled() && !isSample(x)) enqueue({ op: 'upsert', record: x });
+  return x;
+}
+function deleteRecord(id) {
+  records = records.filter(r => r.id !== id);
+  localGen++; persistRecords(); renderAll();
+  if (api.enabled() && !String(id).startsWith('sample-')) enqueue({ op: 'delete', id });
+}
+let pollTimer = null, polling = false;
+function schedulePoll(ms) {
+  clearTimeout(pollTimer); pollTimer = null;
+  if (!api.enabled() || document.visibilityState === 'hidden') return;
+  pollTimer = setTimeout(poll, ms ?? (syncState === 'error' ? POLL.error : POLL.normal));
+}
+async function poll() {
+  if (!api.enabled() || document.visibilityState === 'hidden' || polling) return;
+  polling = true;
+  try {
+    if (queue.length) await flushQueue();
+    const s = await api.get({ action: 'state' });
+    if (String(s.rev) !== lastRev) await refreshFromServer(true);
+    else if (syncState !== 'ok' && !queue.length) setStatus('ok');
+  } catch (e) { setStatus('error', e.message); }
+  finally { polling = false; schedulePoll(); }
+}
+function setStatus(s, msg = '') { syncState = s; syncMsg = msg; renderStatus(); }
+function renderStatus() {
+  const chip = $('#syncChip');
+  const sample = records.some(isSample);
+  let txt, cls = '';
+  if (!api.enabled()) { txt = sample ? '🧪 샘플' : '📱 로컬'; cls = 'text-amber-300 border-amber-500/50'; }
+  else if (syncState === 'sync') txt = '⏳ 동기화';
+  else if (syncState === 'error') { txt = `⚠️ 실패${queue.length ? ' ' + queue.length : ''}`; cls = 'text-amber-300 border-amber-500/50'; }
+  else if (queue.length) { txt = `☁️ 대기 ${queue.length}`; cls = 'text-emerald-300 border-emerald-500/40'; }
+  else { txt = '☁️ 연결됨'; cls = 'text-emerald-300 border-emerald-500/40'; }
+  const sp = txt.indexOf(' ');
+  chip.innerHTML = sp > 0 ? `${esc(txt.slice(0, sp))}<span class="hidden min-[420px]:inline">&nbsp;${esc(txt.slice(sp + 1))}</span>` : esc(txt);
+  chip.className = 'chip flex-none max-w-[26vw] overflow-hidden text-ellipsis ' + cls;
+  chip.title = syncMsg || (api.enabled() ? '탭하여 지금 동기화' : '탭하여 Google Sheets 연결 설정');
+  $('#sampleBanner').hidden = !sample;
+}
+
+/* =====================================================================
+ * 5. 집계 / 레벨 / 배지
+ * ===================================================================== */
+const byDT = (a, b) => a.date.localeCompare(b.date) || (a.start || '').localeCompare(b.start || '') || String(a.id).localeCompare(String(b.id));
+const sessions = () => records.slice().sort(byDT);
+function dayMap() {
+  const m = new Map();
+  for (const r of records) {
+    if (!m.has(r.date)) m.set(r.date, { list: [], ach: 0, min: 0, best: 0, hits: 0 });
+    const d = m.get(r.date); d.list.push(r); d.ach += r.achieved; d.min += r.minutes; d.best = Math.max(d.best, r.best); d.hits += r.total_hits;
+  }
+  for (const d of m.values()) d.list.sort(byDT);
+  return m;
+}
+const tier = a => a >= 4 ? 't4' : a >= 2 ? 't2' : a >= 1 ? 't1' : 't0';
+const uniqDates = () => [...new Set(records.map(r => r.date))].filter(d => d && d <= todayStr()).sort();
+function intervalStats() {
+  const t = todayStr(), dates = uniqDates();
+  if (dates.length < 2) return { recent: null, all: null, last: dates.length ? daysBetween(dates[dates.length - 1], t) : null, days: dates.length };
+  const gaps = []; for (let i = 1; i < dates.length; i++) gaps.push(daysBetween(dates[i - 1], dates[i]));
+  return { recent: avg(gaps.slice(-10)), all: avg(gaps), last: daysBetween(dates[dates.length - 1], t), days: dates.length };
+}
+function achStreak(ss) { let cur = 0, best = 0; for (const r of ss) { if (r.achieved > 0) { cur++; best = Math.max(best, cur); } else cur = 0; } return { cur, best }; }
+function weekKey(ds) { const d = parseYmd(ds); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return ymd(d); }
+function weekStreak() {
+  const weeks = new Set(records.map(r => weekKey(r.date)));
+  const w = parseYmd(weekKey(todayStr()));
+  if (!weeks.has(ymd(w))) w.setDate(w.getDate() - 7);           // 이번 주는 아직 진행 중
+  let n = 0; while (weeks.has(ymd(w))) { n++; w.setDate(w.getDate() - 7); }
+  return n;
+}
+const totalAch = (list = records) => sum(list.map(r => r.achieved));
+const allBest = (list = records) => list.reduce((m, r) => Math.max(m, r.best), 0);
+const LEVELS = [[0,'입문 셔틀러'],[1,'첫 랠리 성공'],[5,'콕 새싹'],[10,'랠리 러버'],[20,'스윙 장인'],[35,'네트 지배자'],[50,'클리어 마스터'],[75,'드롭샷 달인'],[100,'스매시 전설'],[150,'셔틀콕 신선'],[220,'배드민턴 도사'],[300,'랠리의 신']];
+function levelOf(total) {
+  let i = 0; LEVELS.forEach((l, k) => { if (total >= l[0]) i = k; });
+  const next = LEVELS[i + 1];
+  return { lv: i + 1, title: LEVELS[i][1], cur: LEVELS[i][0], next: next ? next[0] : null, nextTitle: next ? next[1] : '', pct: next ? (total - LEVELS[i][0]) / (next[0] - LEVELS[i][0]) * 100 : 100 };
+}
+const BADGES = [
+  { id: 'first',   ic: '🐣', nm: '첫 발걸음',     ds: '첫 운동 기록',               ok: c => c.n >= 1 },
+  { id: 'ach1',    ic: '🎯', nm: '첫 목표 달성',  ds: '목표 랠리 첫 성공',          ok: c => c.total >= 1 },
+  { id: 'tri',     ic: '🎩', nm: '해트트릭',      ds: '한 번 운동에 3회 달성',      ok: c => c.maxAch >= 3 },
+  { id: 'five',    ic: '🖐️', nm: '파이브 스타',   ds: '한 번 운동에 5회 달성',      ok: c => c.maxAch >= 5 },
+  { id: 'r500',    ic: '🚀', nm: '500 랠리',      ds: '한 랠리 500회 이상',         ok: c => c.best >= 500 },
+  { id: 'r1000',   ic: '🌌', nm: '천 번의 약속',  ds: '한 랠리 1,000회 이상',       ok: c => c.best >= 1000 },
+  { id: 'hour',    ic: '⏰', nm: '한 시간의 땀',  ds: '한 번에 60분 이상 운동',     ok: c => c.maxMin >= 60 },
+  { id: 'wk3',     ic: '📆', nm: '주 3회 클럽',   ds: '7일 안에 3일 운동',          ok: c => c.wk3 },
+  { id: 'st5',     ic: '🔥', nm: '5연속 달성',    ds: '5번 연속 운동마다 달성',     ok: c => c.streakBest >= 5 },
+  { id: 'm12',     ic: '🗓️', nm: '개근상',        ds: '한 달 12일 이상 운동',       ok: c => c.maxMonthDays >= 12 },
+  { id: 'early',   ic: '🌅', nm: '새벽 콕',       ds: '오전 7시 이전 시작',         ok: c => c.early },
+  { id: 'night',   ic: '🌙', nm: '달빛 랠리',     ds: '밤 9시 이후 시작',           ok: c => c.night },
+  { id: 't50',     ic: '🏅', nm: '누적 50회',     ds: '달성 횟수 누적 50회',        ok: c => c.total >= 50 },
+  { id: 't100',    ic: '👑', nm: '누적 100회',    ds: '달성 횟수 누적 100회',       ok: c => c.total >= 100 },
+  { id: 'hr10',    ic: '🛰️', nm: '누적 10시간',   ds: '누적 운동 10시간',           ok: c => c.totalMin >= 600 },
+  { id: 'back',    ic: '🦅', nm: '화려한 복귀',   ds: '14일 이상 쉬고 다시 운동',   ok: c => c.comeback },
+  { id: 't400',    ic: '💎', nm: '400 클럽',      ds: '목표 400회 이상 달성',       ok: c => c.t400 },
+  { id: 'pb5',     ic: '💯', nm: '성장의 증거',   ds: '최고 기록 5번 경신',         ok: c => c.pbCount >= 5 }
+];
+function badgeCtx(list) {
+  const dates = [...new Set(list.map(r => r.date))].sort();
+  const months = {}; dates.forEach(d => { const k = d.slice(0, 7); months[k] = (months[k] || 0) + 1; });
+  let wk3 = false, comeback = false;
+  for (let i = 0; i < dates.length; i++) {
+    if (i >= 2 && daysBetween(dates[i - 2], dates[i]) <= 6) wk3 = true;
+    if (i >= 1 && daysBetween(dates[i - 1], dates[i]) >= 14) comeback = true;
+  }
+  const hits = sum(list.map(r => r.total_hits));
+  return {
+    n: list.length, total: totalAch(list), maxAch: list.reduce((m, r) => Math.max(m, r.achieved), 0), best: allBest(list),
+    maxMin: list.reduce((m, r) => Math.max(m, r.minutes), 0), wk3, comeback, streakBest: achStreak(list.slice().sort(byDT)).best,
+    maxMonthDays: Math.max(0, ...Object.values(months)), early: list.some(r => r.start && r.start < '07:00'),
+    night: list.some(r => r.start && r.start >= '21:00'), hits, km: distKm(hits),
+    totalMin: sum(list.map(r => r.minutes)), t400: list.some(r => r.target >= 400 && r.achieved > 0),
+    pbCount: (() => { let mx = 0, n = 0; list.slice().sort(byDT).forEach(r => { if (r.best > mx) { mx = r.best; n++; } }); return n; })()
+  };
+}
+const earnedBadges = (list = records) => { const c = badgeCtx(list); return new Set(BADGES.filter(b => b.ok(c)).map(b => b.id)); };
+
+/* =====================================================================
+ * 6. 공통 UI (모달 / 토스트 / 확인창) — 안드로이드 뒤로가기로 모달 닫기
+ * ===================================================================== */
+let modalZ = 60;
+const modalStack = [];
+let ignorePop = 0, guardPushed = false;
+function pushGuard() { if (!guardPushed) { try { history.pushState({ bdModal: true }, ''); guardPushed = true; } catch {} } }
+window.addEventListener('popstate', () => {
+  if (ignorePop > 0) { ignorePop--; if (modalStack.length) { guardPushed = false; pushGuard(); } return; }
+  guardPushed = false;
+  const top = modalStack[modalStack.length - 1];
+  if (top) { top.close(true); if (modalStack.length) pushGuard(); }
+});
+function openModal({ title, body = '', wide = false, onClose }) {
+  const wrap = document.createElement('div');
+  wrap.className = 'modal-wrap'; wrap.style.zIndex = ++modalZ;
+  wrap.innerHTML = `<div class="modal-backdrop"></div>
+    <div class="modal-card ${wide ? 'sm:max-w-2xl' : 'sm:max-w-lg'}" role="dialog" aria-modal="true">
+      <div class="flex items-center gap-2 px-4 pt-3 pb-2 sticky top-0 bg-slate-900 z-10 rounded-t-[1.2rem]">
+        <div class="mx-auto absolute left-1/2 -translate-x-1/2 top-1.5 w-10 h-1 rounded-full bg-slate-700 sm:hidden"></div>
+        <h2 class="text-lg font-extrabold flex-1 pt-1.5">${title}</h2>
+        <button class="icon-btn" data-close aria-label="닫기">✕</button>
+      </div>
+      <div class="modal-body px-4"></div>
+    </div>`;
+  const bodyEl = $('.modal-body', wrap);
+  if (typeof body === 'string') bodyEl.innerHTML = body; else bodyEl.append(body);
+  const m = { el: wrap, body: bodyEl, closed: false, close };
+  function close(fromPop = false) {
+    if (m.closed) return; m.closed = true;
+    wrap.remove(); modalZ--;
+    const i = modalStack.indexOf(m); if (i >= 0) modalStack.splice(i, 1);
+    if (!fromPop && !modalStack.length && guardPushed) { guardPushed = false; ignorePop++; history.back(); }
+    onClose && onClose();
+  }
+  $('.modal-backdrop', wrap).onclick = () => close();
+  $('[data-close]', wrap).onclick = () => close();
+  modalStack.push(m); pushGuard();
+  $('#modalRoot').append(wrap);
+  return m;
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && modalStack.length) modalStack[modalStack.length - 1].close(); });
+function askConfirm(msg, { ok = '확인', cancel = '취소', danger = false, title = '확인' } = {}) {
+  return new Promise(res => {
+    let done = false;
+    const m = openModal({ title: esc(title),
+      body: `<p class="text-slate-200 whitespace-pre-line leading-relaxed text-[15px]">${esc(msg)}</p>
+        <div class="grid grid-cols-2 gap-2 mt-6"><button class="btn" data-no>${esc(cancel)}</button>
+        <button class="btn ${danger ? 'btn-danger' : 'btn-primary'}" data-yes>${esc(ok)}</button></div>`,
+      onClose: () => { if (!done) { done = true; res(false); } } });
+    $('[data-yes]', m.body).onclick = () => { done = true; m.close(); res(true); };
+    $('[data-no]', m.body).onclick = () => m.close();
+  });
+}
+function toast(msg, kind = 'info', ms = 2400) {
+  const t = document.createElement('div');
+  t.className = 'toast toast-' + kind; t.textContent = msg;
+  const root = $('#toastRoot'); while (root.children.length >= 2) root.firstElementChild.remove();
+  root.append(t);
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, ms);
+}
+
+/* =====================================================================
+ * 7. 소리 · 음성 · 진동 · 화면 켜짐 유지 · 꽃가루
+ * ===================================================================== */
+let actx = null;
+function ac() {
+  if (!actx) { const A = window.AudioContext || window.webkitAudioContext; if (A) try { actx = new A(); } catch {} }
+  if (actx && actx.state === 'suspended') actx.resume().catch(() => {});
+  return actx;
+}
+function tone(freq, dur = .12, type = 'sine', vol = .25, when = 0, force = false) {
+  if (!settings.sound && !force) return;
+  const c = ac(); if (!c) return;
+  const t = c.currentTime + when, o = c.createOscillator(), g = c.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g).connect(c.destination); o.start(t); o.stop(t + dur + .03);
+}
+const sfx = {
+  tick()    { tone(1320, .05, 'sine', .12); },
+  mile()    { tone(880, .09, 'triangle', .25); tone(1175, .12, 'triangle', .25, .1); },
+  brk()     { tone(330, .18, 'sawtooth', .12); tone(247, .25, 'sawtooth', .1, .15); },
+  fanfare() { [523, 659, 784, 1047].forEach((f, i) => tone(f, .18, 'triangle', .3, i * .12)); tone(1319, .45, 'triangle', .3, .5); },
+  soft()    { [440, 554, 659].forEach((f, i) => tone(f, .2, 'sine', .2, i * .15)); },
+  alarm()   { [0, .22, .44].forEach(w => tone(988, .16, 'square', .32, w, true)); tone(1319, .3, 'square', .3, .7, true); }
+};
+function speak(text) {
+  if (!settings.voice || !('speechSynthesis' in window)) return;
+  try { const u = new SpeechSynthesisUtterance(String(text)); u.lang = 'ko-KR'; u.rate = 1.05; u.volume = 1; speechSynthesis.speak(u); } catch {}
+}
+const buzz = (p = 12) => { if (!settings.vibrate) return; try { navigator.vibrate && navigator.vibrate(p); } catch {} };
+let wakeLock = null;
+async function wakeOn() { try { if ('wakeLock' in navigator && !wakeLock) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => { wakeLock = null; }); } } catch {} }
+function wakeOff() { try { wakeLock && wakeLock.release(); } catch {} wakeLock = null; }
+function confetti(n = 150) {
+  const cv = document.createElement('canvas'); cv.className = 'confetti'; document.body.append(cv);
+  const dpr = window.devicePixelRatio || 1, W = cv.width = innerWidth * dpr, H = cv.height = innerHeight * dpr, g = cv.getContext('2d');
+  const cols = ['#a3e635', '#34d399', '#facc15', '#38bdf8', '#fb7185', '#a78bfa', '#ffffff'];
+  const ps = Array.from({ length: n }, () => ({ x: W / 2 + (Math.random() - .5) * W * .4, y: H * .38, vx: (Math.random() - .5) * 16 * dpr, vy: (-Math.random() * 15 - 5) * dpr,
+    r: (5 + Math.random() * 5) * dpr, c: cols[Math.random() * cols.length | 0], a: Math.random() * 6, va: (Math.random() - .5) * .3, s: Math.random() < .12 }));
+  const t0 = performance.now();
+  (function fr(t) {
+    const k = (t - t0) / 1000; g.clearRect(0, 0, W, H);
+    for (const p of ps) {
+      p.vy += .38 * dpr; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.a += p.va;
+      g.save(); g.translate(p.x, p.y); g.rotate(p.a); g.globalAlpha = Math.max(0, 1 - k / 3.2);
+      if (p.s) { g.font = `${p.r * 3}px serif`; g.fillText('🏸', 0, 0); } else { g.fillStyle = p.c; g.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2); }
+      g.restore();
+    }
+    if (k < 3.2) requestAnimationFrame(fr); else cv.remove();
+  })(t0);
+}
+
+/* =====================================================================
+ * 8. 메시지 (축하 / 응원 / 팁)
+ * ===================================================================== */
+const MSG_PARTY = [
+  '🎉 목표 {T}회 랠리를 {n}번 달성! 오늘 두 분 호흡 최고예요.',
+  '🏆 {n}회 달성! 이 정도면 동네 대회 출전 각입니다.',
+  '✨ 셔틀콕이 바닥을 잊은 날! {T}회 × {n}번 성공.',
+  '💚 꾸준함이 실력이 되는 중! 오늘 최고 랠리 {best}회.',
+  '🥳 {a}·{b} 콤비, 오늘도 해냈습니다!',
+  '🔥 {mins}분 땀 흘리고 {n}번 달성! 몸도 마음도 개운하시죠?',
+  '🌟 {T}회 고지 {n}번 정복! 다음 목표는 더 높게 잡아봐도 되겠어요.'
+];
+const MSG_CHEER = [
+  '💪 최고 {best}회! 목표까지 딱 {gap}회 남았어요. 다음엔 꼭 넘습니다.',
+  '🌱 오늘 {mins}분의 스윙이 전부 실력으로 쌓였어요.',
+  '😊 운동하러 나온 것 자체가 승리! 다음 판엔 {T}회 갑니다.',
+  '🏸 끊겨도 괜찮아요. 랠리는 다시 이으면 되니까요.',
+  '🙌 {mins}분 땀 흘린 두 분, 정말 멋져요. 다음엔 더 길게!',
+  '🧭 오늘 최고 {best}회 — 목표의 {pct}%까지 왔어요. 거의 다 왔습니다!'
+];
+const MSG_LIVE = ['🎉 {T}회 달성! 오늘 {n}번째', '🏆 {T}회 돌파! 계속 이어가세요', '✨ 완벽한 랠리! {n}번째 달성', '🔥 {T}회 성공! 오늘 컨디션 최고'];
+const TIPS = [
+  '랠리는 경쟁이 아니라 대화입니다. 상대가 받기 좋은 곳으로 보내 주세요.',
+  '높고 깊은 클리어 위주로 리듬을 만들면 랠리가 길어집니다.',
+  '어깨 힘을 빼고 손목은 부드럽게 — 오래 칠수록 힘 빼기가 핵심입니다.',
+  '끊겨도 0부터 다시. 숫자보다 리듬에 집중하면 어느새 {T}회!',
+  '준비운동 3분이 부상 예방의 절반입니다. 손목·발목·어깨부터 풀어 주세요.',
+  '셔틀을 친 뒤에는 코트 가운데로 한 발 복귀 — 다음 공이 쉬워집니다.',
+  '중간중간 물 한 모금! 30분 이상 운동 시 수분 보충을 권합니다.',
+  '랠리는 왕복 단위로 셉니다. 한 사람이 자기가 칠 때마다 소리 내어 세면 정확합니다.'
+];
+function fill(t, v) { return t.replace(/\{(\w+)\}/g, (_, k) => v[k] ?? ''); }
+
+/* =====================================================================
+ * 9. 캘린더 (메인) — 칸에 그날 달성 횟수 표시
+ * ===================================================================== */
+function renderCalendar() {
+  const y = calMonth.getFullYear(), m = calMonth.getMonth();
+  $('#calTitle').textContent = `${y}년 ${m + 1}월`;
+  const first = new Date(y, m, 1), last = new Date(y, m + 1, 0);
+  const total = Math.ceil((first.getDay() + last.getDate()) / 7) * 7;
+  const dm = dayMap(), t = todayStr(), prefix = `${y}-${pad(m + 1)}`;
+  const mdays = [...dm.keys()].filter(d => d.startsWith(prefix));
+  const mAch = sum(mdays.map(d => dm.get(d).ach)), mMin = sum(mdays.map(d => dm.get(d).min));
+  $('#calSummary').textContent = mdays.length ? `운동 ${mdays.length}일 · 달성 ${mAch}회 · ${Math.round(mMin)}분` : '이번 달 운동 기록 없음';
+  const goal = Math.max(1, Math.round(num(settings.monthlyGoal, 12))), pct = Math.min(100, mdays.length / goal * 100);
+  $('#calGoal').innerHTML = `<div class="flex items-center gap-2 text-[11px] text-slate-400"><span class="whitespace-nowrap">월 목표 ${mdays.length}/${goal}일</span><div class="kpi-bar flex-1"><div style="width:${pct}%;background:${pct >= 100 ? C.gold : C.acc}"></div></div><span>${pct >= 100 ? '🏆' : Math.round(pct) + '%'}</span></div>`;
+  let focusIdx = 0;
+  const tDate = parseYmd(t);
+  if (tDate.getFullYear() === y && tDate.getMonth() === m) focusIdx = Math.floor((first.getDay() + tDate.getDate() - 1) / 7);
+  let html = '';
+  for (let i = 0; i < total; i++) {
+    if (calCollapsed && Math.floor(i / 7) !== focusIdx) continue;
+    const d = new Date(y, m, 1 - first.getDay() + i);
+    const ds = ymd(d), info = dm.get(ds), out = d.getMonth() !== m;
+    const cls = ['cal-cell']; if (out) cls.push('out'); if (ds === t) cls.push('today');
+    let inner;
+    if (info) {
+      cls.push(tier(info.ach));
+      inner = `<span class="cal-num-sm">${d.getDate()}</span><span class="cal-ach">${info.ach}</span><span class="cal-sub">${info.best ? '🏆' + info.best : info.ach ? '회 달성' : '도전💪'}</span>`;
+      if (info.list.length > 1) inner += `<span class="cal-badges">×${info.list.length}</span>`;
+    } else {
+      const dow = d.getDay();
+      inner = `<span class="text-sm font-bold ${dow === 0 ? 'text-rose-300' : dow === 6 ? 'text-sky-300' : 'text-slate-300'}">${d.getDate()}</span>`;
+    }
+    const tip = info ? `${fmtDateK(ds)} · ${info.list.length}회 운동 · 달성 ${info.ach}회 · 최고 ${info.best}회 · ${Math.round(info.min)}분` : fmtDateK(ds);
+    html += `<button class="${cls.join(' ')}" data-date="${ds}" title="${esc(tip)}" aria-label="${esc(tip)}">${inner}</button>`;
+  }
+  $('#calGrid').innerHTML = html;
+  $('#calToggle').textContent = calCollapsed ? '펼치기 ▾' : '접기 ▴';
+}
+function openDayModal(date) {
+  const m = openModal({ title: '📅 ' + fmtDateK(date), body: '<div data-day></div>', onClose: () => { dayModal = null; } });
+  dayModal = { date, m }; renderDayModal();
+}
+function renderDayModal() {
+  if (!dayModal || dayModal.m.closed) return;
+  const { date, m } = dayModal;
+  const info = dayMap().get(date);
+  let head = '';
+  if (info) head = `<div class="grid grid-cols-4 gap-2 text-center rounded-xl bg-slate-800/60 p-3 mb-3">
+      <div><div class="text-[10px] text-slate-400">달성</div><div class="text-2xl font-black text-lime-300">${info.ach}</div></div>
+      <div><div class="text-[10px] text-slate-400">운동</div><div class="text-2xl font-black">${Math.round(info.min)}<span class="text-xs">분</span></div></div>
+      <div><div class="text-[10px] text-slate-400">최고</div><div class="text-2xl font-black text-sky-300">${info.best}</div></div>
+      <div><div class="text-[10px] text-slate-400">운동</div><div class="text-2xl font-black">${info.list.length}<span class="text-xs">회</span></div></div></div>`;
+  $('[data-day]', m.body).innerHTML = `${head}
+    <div class="space-y-2">${info ? info.list.map(recordRowHTML).join('') : '<p class="text-slate-400 text-sm py-6 text-center">이 날짜에는 운동 기록이 없습니다.</p>'}</div>
+    <div class="grid grid-cols-2 gap-2 mt-4"><button class="btn" data-best-day>🏆 최고 랠리 기록</button><button class="btn" data-add-day>＋ 운동 상세 추가</button></div>`;
+  $('[data-add-day]', m.body).onclick = () => openRecordModal(null, { date });
+  $('[data-best-day]', m.body).onclick = () => openQuickBest(date);
+}
+
+/* =====================================================================
+ * 10. 운동 타이머 (목표 시간 측정 · 종료 알람) — 랠리 결과는 종료 후 기록
+ * ===================================================================== */
+function idleSess() { return { status: 'idle', planMin: durSetting(), target: tgtSetting(), date: todayStr(), startClock: '', elapsedMs: 0, runStart: 0, count: 0, rallies: [], timeUp: false, alerts: {}, pbSaid: false }; }
+function saveSess() { store.set(K.sess, sess); }
+const live = () => sess.status === 'running' || sess.status === 'paused';
+const elapsed = () => sess.elapsedMs + (sess.status === 'running' ? Date.now() - sess.runStart : 0);
+const remaining = () => sess.planMin * 60000 - elapsed();
+
+async function startSession() {
+  ac();                                                   // 사용자 탭으로 오디오 잠금 해제
+  sess = { ...idleSess(), status: 'running', startClock: hhmm(new Date()), runStart: Date.now() };
+  saveSess(); wakeOn();
+  sfx.mile(); buzz(30);
+  speak(`운동을 시작합니다. ${sess.planMin}분 뒤에 알려 드릴게요. 목표 랠리 ${sess.target}회!`);
+  renderSession();
+  if (window.innerWidth < 1024) setTimeout(() => window.scrollTo({ top: Math.max(0, $('#runLive').getBoundingClientRect().top + scrollY - 64), behavior: 'smooth' }), 50);
+  if ('Notification' in window && Notification.permission === 'default' && !store.get(K.notif, false)) {
+    store.set(K.notif, true);
+    try { await Notification.requestPermission(); } catch {}
+  }
+}
+function pauseSession() { if (sess.status !== 'running') return; sess.elapsedMs += Date.now() - sess.runStart; sess.status = 'paused'; saveSess(); renderSession(); }
+function resumeSession() {
+  if (sess.status !== 'paused') return;
+  if (sess.timeUp || remaining() <= 0) { extendSession(5); return; }
+  sess.status = 'running'; sess.runStart = Date.now(); saveSess(); wakeOn(); renderSession();
+}
+function extendSession(min) {
+  stopAlarm();
+  sess.planMin = clamp(sess.planMin + min, 1, 300); sess.timeUp = false;
+  const rem = remaining(); if (rem > 300000) delete sess.alerts.m5; if (rem > 60000) delete sess.alerts.m1;
+  if (sess.status === 'paused') { sess.status = 'running'; sess.runStart = Date.now(); }
+  saveSess(); wakeOn(); renderSession(); toast(`⏱️ ${min}분 연장 · 목표 ${sess.planMin}분`, 'ok');
+}
+function tick() {
+  if (!sess || !live()) return;
+  if (sess.status === 'running') {
+    const rem = remaining(), plan = sess.planMin * 60000, A = sess.alerts;
+    if (!A.half && plan >= 20 * 60000 && rem <= plan / 2 && rem > 60000) { A.half = 1; saveSess(); speak('절반 지났어요. 화이팅!'); }
+    if (!A.m5 && plan > 6 * 60000 && rem <= 300000 && rem > 240000) { A.m5 = 1; saveSess(); sfx.mile(); speak('5분 남았습니다'); }
+    if (!A.m1 && plan > 2 * 60000 && rem <= 60000 && rem > 30000) { A.m1 = 1; saveSess(); speak('1분 남았습니다'); }
+    if (rem <= 0) { onTimeUp(-rem > 120000); return; }
+  }
+  renderTimer();
+}
+setInterval(tick, 250);
+
+/* 알람 */
+let alarmTimer = null, alarmStop = null;
+function startAlarm() {
+  stopAlarm();
+  const ring = () => { sfx.alarm(); try { navigator.vibrate && navigator.vibrate([400, 150, 400]); } catch {} };
+  ring(); alarmTimer = setInterval(ring, 1500);
+  alarmStop = setTimeout(stopAlarm, 90000);               // 90초 후 자동 정지
+  $('#tRingWrap').classList.add('alarm-ring');
+}
+function stopAlarm() {
+  clearInterval(alarmTimer); clearTimeout(alarmStop); alarmTimer = null;
+  try { navigator.vibrate && navigator.vibrate(0); } catch {}
+  $('#tRingWrap') && $('#tRingWrap').classList.remove('alarm-ring');
+}
+async function notifyTimeUp() {
+  if (!('Notification' in window) || Notification.permission !== 'granted' || document.visibilityState === 'visible') return;
+  const opt = { body: `${sess.planMin}분 운동 완료 · 목표 달성 횟수와 최고 랠리를 기록해 주세요`, icon: 'icon-192.png', tag: 'bd-timeup', vibrate: [400, 150, 400], requireInteraction: true };
+  try { const reg = await navigator.serviceWorker?.getRegistration(); if (reg) reg.showNotification('⏰ 운동 시간 종료!', opt); else new Notification('⏰ 운동 시간 종료!', opt); } catch {}
+}
+function onTimeUp(silent = false) {
+  sess.elapsedMs = sess.planMin * 60000; sess.status = 'paused'; sess.timeUp = true; saveSess();
+  if (!silent) { startAlarm(); speak('운동 시간이 끝났습니다. 수고하셨어요!'); notifyTimeUp(); }
+  renderSession();
+  const m = openModal({ title: '⏰ 운동 시간 종료!',
+    body: `<div class="text-center py-2">
+      <div class="text-6xl mb-2 ${silent ? '' : 'alarm-ring'} inline-block">⏰</div>
+      <div class="text-xl font-black">${sess.planMin}분 운동 완료!</div>
+      <div class="text-sm text-slate-300 mt-1">수고하셨어요! 목표 ${sess.target}회 랠리를 몇 번 달성했는지 기록해 주세요.</div>
+      <div class="grid gap-2 mt-5">
+        <button class="btn btn-primary !min-h-[58px] text-lg" data-a="end">🔕 알람 끄고 결과 기록</button>
+        <div class="grid grid-cols-2 gap-2"><button class="btn" data-a="e5">＋5분 연장</button><button class="btn" data-a="e10">＋10분 연장</button></div>
+      </div></div>`,
+    onClose: () => stopAlarm() });
+  $('[data-a="end"]', m.body).onclick = () => { m.close(); openEndModal(); };
+  $('[data-a="e5"]', m.body).onclick = () => { m.close(); extendSession(5); };
+  $('[data-a="e10"]', m.body).onclick = () => { m.close(); extendSession(10); };
+}
+
+/* 렌더 */
+function renderSession() {
+  const isLive = live();
+  $('#runIdle').hidden = isLive; $('#runLive').hidden = !isLive;
+  if (!isLive) { renderIdle(); return; }
+  const p = $('#tPause');
+  if (sess.status === 'running') { p.textContent = '⏸ 일시정지'; p.className = 'btn w-full'; }
+  else { p.textContent = sess.timeUp ? '▶ 5분 더 하기' : '▶ 재개'; p.className = 'btn btn-primary w-full'; }
+  $('#lTarget').textContent = sess.target;
+  const pb = allBest(), tb = Math.max(0, ...records.filter(r => r.date === sess.date).map(r => r.best));
+  $('#lInfo').textContent = pb ? `👑 최고 기록 ${fmtNum(pb)}회${tb ? ` · 오늘 최고 ${fmtNum(tb)}회` : ''}` : '';
+  const day = Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);
+  $('#lQuote').textContent = fill(TIPS[(day + 3) % TIPS.length], { T: sess.target });
+  renderTimer();
+}
+function renderTimer() {
+  if (!live()) return;
+  const el = elapsed(), plan = sess.planMin * 60000, rem = plan - el;
+  const prog = clamp(el / plan, 0, 1);
+  const ring = $('#tRing'); ring.style.strokeDashoffset = (326.73 * (1 - prog)).toFixed(1);
+  ring.style.stroke = rem <= 60000 ? '#fb7185' : rem <= 300000 ? '#facc15' : '#a3e635';
+  $('#tRemain').textContent = mmss(rem);
+  $('#tSub').textContent = `경과 ${mmss(el)} / ${sess.planMin}분`;
+  $('#tLabel').textContent = sess.timeUp ? '시간 종료' : '남은 시간';
+  $('#tState').textContent = sess.status === 'running' ? `🟢 진행 중 · ${sess.startClock} 시작${wakeLock ? ' · 화면 켜짐 유지' : ''}` : sess.timeUp ? '⏰ 운동 시간 종료' : '⏸ 일시정지 중';
+}
+function renderIdle() {
+  const d = durSetting(), t = tgtSetting();
+  $('#iDur').textContent = d; $('#iTgt').textContent = t;
+  $$('#iDurChips [data-dur]').forEach(b => b.classList.toggle('on', +b.dataset.dur === d));
+  $$('#iTgtChips [data-tgt]').forEach(b => b.classList.toggle('on', +b.dataset.tgt === t));
+  $('#iPair').innerHTML = pAv('p1', 30) + pAv('p2', 30);
+  const iv = intervalStats(), ss = sessions(), lastS = ss[ss.length - 1];
+  const today = records.filter(r => r.date === todayStr());
+  let info = '';
+  if (today.length) info = `✅ 오늘 ${today.length}회 운동 · 달성 ${totalAch(today)}회 — 한 번 더?`;
+  else if (lastS) info = `지난 운동 ${iv.last === 0 ? '오늘' : iv.last + '일 전'} · 달성 ${lastS.achieved}회 · 최고 ${lastS.best}회${iv.recent != null ? ` · 평균 ${iv.recent.toFixed(1)}일마다 운동` : ''}`;
+  else info = '첫 운동을 시작해 보세요! 🐣';
+  $('#iInfo').textContent = info;
+  const day = Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);
+  $('#iQuote').textContent = fill(TIPS[day % TIPS.length], { T: t });
+}
+
+/* =====================================================================
+ * 11. 종료 → 결과 기록 (목표 달성 횟수 · 최고 랠리) → 축하/응원
+ * ===================================================================== */
+function openEndModal() {
+  const wasRunning = sess.status === 'running';
+  if (wasRunning) pauseSession();
+  stopAlarm();
+  openQuickBest(sess.date, { session: true, wasRunning });
+}
+function saveSessionRecord(fields) {
+  const prevB = earnedBadges(), prevLv = levelOf(totalAch()).lv, prevBest = allBest();
+  const saved = saveRecord({ id: uid(), date: sess.date, start: sess.startClock, plan_min: sess.planMin, total_hits: 0, rallies: '', ...fields });
+  stopAlarm(); wakeOff();
+  sess = idleSess(); saveSess(); renderSession();
+  const nowB = earnedBadges(), lv = levelOf(totalAch());
+  showResult(saved, { newB: BADGES.filter(b => nowB.has(b.id) && !prevB.has(b.id)), levelUp: lv.lv > prevLv ? lv : null, pb: prevBest > 0 && saved.best > prevBest, prevBest });
+}
+function showResult(r, { newB = [], levelUp = null, pb = false, prevBest = 0 } = {}) {
+  const ok = r.achieved > 0;
+  const v = { T: r.target, n: r.achieved, best: r.best, gap: Math.max(0, r.target - r.best), mins: Math.round(r.minutes), a: shortName('p1'), b: shortName('p2'), pct: Math.round(r.best / r.target * 100) };
+  const msg = ok ? fill(rnd(MSG_PARTY), v) : r.best ? fill(rnd(MSG_CHEER), v) : '🧘 오늘은 몸풀기 데이! 다음엔 최고 랠리도 함께 기록해 봐요.';
+  if (ok) { sfx.fanfare(); confetti(170); speak(`축하합니다! 목표 ${r.target}회를 ${r.achieved}번 달성했어요!`); }
+  else { sfx.soft(); speak('수고하셨어요! 다음엔 꼭 달성할 거예요.'); }
+  const cell = (k, val, cls = '') => `<div class="rounded-xl bg-slate-800/60 p-2"><div class="text-[10px] text-slate-400">${k}</div><div class="text-lg font-black ${cls}">${val}</div></div>`;
+  const m = openModal({ title: ok ? '🎉 축하합니다!' : '💪 수고하셨어요!',
+    body: `<div class="text-center pt-1">
+      <div class="flex justify-center mb-2">${pairAv(72)}</div>
+      <div class="text-6xl font-black ${ok ? 'text-lime-300' : 'text-orange-300'} tabular-nums">${r.achieved}<span class="text-2xl">회 달성</span></div>
+      <div class="text-[15px] font-bold text-slate-100 mt-3 leading-relaxed px-2">${esc(msg)}</div>
+      ${pb ? '<div class="mt-3 inline-block chip text-yellow-300 border-yellow-500/50">🔥 최고 기록 경신! ' + r.best + '회</div>' : ''}
+      ${levelUp ? `<div class="mt-3 rounded-xl border border-lime-500/50 bg-lime-500/10 p-2 text-lime-200 font-extrabold">⭐ 레벨 업! Lv.${levelUp.lv} ${esc(levelUp.title)}</div>` : ''}
+      ${newB.length ? `<div class="mt-3 rounded-xl border border-yellow-500/40 bg-yellow-500/10 p-2"><div class="text-[11px] text-yellow-200 mb-1">새 배지 획득!</div><div class="flex flex-wrap justify-center gap-2">${newB.map(b => `<span class="chip">${b.ic} ${esc(b.nm)}</span>`).join('')}</div></div>` : ''}
+      <div class="grid grid-cols-3 gap-2 mt-4">
+        ${cell('⏱️ 운동 시간', Math.round(r.minutes) + '분')}${cell('🎯 목표 랠리', r.target + '회')}${cell('🏆 최고 랠리', r.best + '회', 'text-sky-300')}
+        ${cell('👑 최고 기록', fmtNum(Math.max(r.best, prevBest || allBest())) + '회', 'text-yellow-300')}${cell('📅 이번 달 달성', totalAch(records.filter(x => x.date.slice(0, 7) === r.date.slice(0, 7))) + '회', 'text-lime-300')}${cell('🔥 칼로리', '≈' + kcal(r) + 'kcal')}
+      </div>
+      <p class="text-[10px] text-slate-500 mt-2">칼로리 = MET 5.5(Compendium 2011, 배드민턴 일반) × 체중 × 시간 — 추정치</p>
+      <div class="grid grid-cols-2 gap-2 mt-4"><button class="btn" data-share>📤 결과 공유</button><button class="btn btn-primary" data-ok>확인</button></div>
+    </div>` });
+  $('[data-ok]', m.body).onclick = () => m.close();
+  $('[data-share]', m.body).onclick = async () => {
+    const text = `🏸 ${fmtDateK(r.date)} 배드민턴 랠리\n⏱️ ${Math.round(r.minutes)}분 · 🎯 ${r.target}회 목표 ${r.achieved}번 달성 · 🏆 최고 ${r.best}회\n${msg}`;
+    try { if (navigator.share) { await navigator.share({ title: '배드민턴 랠리 결과', text }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
+    try { await navigator.clipboard.writeText(text); toast('결과를 복사했습니다', 'ok'); } catch { toast('공유를 지원하지 않는 환경입니다', 'warn'); }
+  };
+}
+
+/* =====================================================================
+ * 13. 추세 탭
+ * ===================================================================== */
+function kpi(title, big, unit, sub1, sub2 = '', color = '#f1f5f9') {
+  return `<div class="card p-4"><div class="text-xs text-slate-400">${title}</div>
+    <div class="text-3xl font-black mt-1 tabular-nums" style="color:${color}">${big}<span class="text-base font-bold text-slate-400">${unit}</span></div>
+    <div class="text-[11px] text-slate-400 mt-1">${sub1}</div>${sub2 ? `<div class="text-[11px] text-slate-400">${sub2}</div>` : ''}</div>`;
+}
+function renderStats() {
+  const ss = sessions(), iv = intervalStats(), l10 = ss.slice(-10);
+  const rate = list => list.length ? list.filter(r => r.achieved > 0).length / list.length * 100 : 0;
+  const plans = l10.map(r => r.plan_min).filter(Boolean);
+  const avgMin10 = avg(l10.map(r => r.minutes));
+  $('#kpis').innerHTML =
+    kpi('⏳ 운동 주기 (며칠마다)', iv.recent != null ? iv.recent.toFixed(1) : '-', '일', `최근 10회 간격${iv.all != null ? ` · 전체 ${iv.all.toFixed(1)}일` : ''}`, iv.last != null ? (iv.last === 0 ? '오늘 운동 완료 ✅' : `마지막 운동 ${iv.last}일 전`) : '기록 없음', C.best) +
+    kpi('⏱️ 평균 운동 시간', ss.length ? Math.round(avgMin10) : '-', '분', `최근 10회${plans.length ? ` · 계획 대비 ${Math.round(avgMin10 / avg(plans) * 100)}%` : ''}`, `누적 ${fmtNum(sum(ss.map(r => r.minutes)) / 60)}시간 · ${ss.length}회`) +
+    kpi('🎯 달성률 (1회 이상 달성)', ss.length ? Math.round(rate(l10)) : '-', '%', `최근 10회 · 전체 ${Math.round(rate(ss))}%`, `회당 평균 ${avg(l10.map(r => r.achieved)).toFixed(1)}회 달성`, rate(l10) >= 50 ? C.ok : C.try) +
+    kpi('🏆 최고 랠리', ss.length ? fmtNum(allBest()) : '-', '회', `최근 10회 평균 최고 ${Math.round(avg(l10.map(r => r.best)))}회`, `누적 달성 ${totalAch()}회`, C.gold);
+  const prefix = todayStr().slice(0, 7), mon = ss.filter(r => r.date.startsWith(prefix));
+  const st = achStreak(ss), minSum = sum(l10.map(r => r.minutes));
+  const hitsAll = sum(ss.map(r => r.total_hits));
+  const box = (t, v, s) => `<div class="card p-3"><div class="text-[11px] text-slate-400">${t}</div><div class="text-xl font-black mt-0.5">${v}</div><div class="text-[11px] text-slate-500">${s}</div></div>`;
+  $('#kpis2').innerHTML =
+    box('📅 이번 달 운동', `${new Set(mon.map(r => r.date)).size}<span class="text-sm text-slate-400">/${settings.monthlyGoal}일</span>`, `달성 ${totalAch(mon)}회 · ${Math.round(sum(mon.map(r => r.minutes)))}분`) +
+    box('🔥 연속 달성', `${st.cur}<span class="text-sm text-slate-400">회</span>`, `최장 ${st.best}회 연속`) +
+    box('🗓️ 주간 연속 운동', `${weekStreak()}<span class="text-sm text-slate-400">주</span>`, '매주 1회 이상') +
+    box('⚡ 시간당 달성', minSum ? (totalAch(l10) / minSum * 60).toFixed(1) : '-', '최근 10회 기준 (회/60분)') +
+    box('🔥 이번 달 칼로리', `≈${fmtNum(sum(mon.map(kcal)))}`, `체중 ${settings.weightKg}kg · MET 5.5 추정`) +
+    box('🎯 누적 달성', `${fmtNum(totalAch())}<span class="text-sm text-slate-400">회</span>`, `운동 ${ss.length}회 · 회당 ${ss.length ? (totalAch() / ss.length).toFixed(1) : '-'}회`) +
+    box('👑 최고 경신', `${pbHistory().length}<span class="text-sm text-slate-400">회</span>`, `최고 기록 ${fmtNum(allBest())}회`) +
+    box('😆 최근 컨디션', ss.filter(r => r.mood).slice(-5).map(r => r.mood).join('') || '-', '최근 5회 기록');
+  renderHeat(); renderBestKpi();
+  if (!window.Chart) { $('#chartNotice').hidden = false; $('#chartNotice').textContent = 'Chart.js를 불러오지 못해 그래프를 표시할 수 없습니다 (인터넷 연결 확인).'; return; }
+  $('#chartNotice').hidden = true;
+  const view = statsRange ? ss.slice(-statsRange) : ss;
+  const labels = view.map(r => r.date.slice(5).replace('-', '/'));
+  const grid = { color: 'rgba(148,163,184,.08)' }, tickC = '#64748b';
+  const common = { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, animation: { duration: 250 },
+    plugins: { legend: { labels: { color: '#cbd5e1', boxWidth: 12 } } }, scales: { x: { ticks: { color: tickC, maxRotation: 0, autoSkip: true, maxTicksLimit: 7 }, grid } } };
+  const tipTitle = list => ({ callbacks: { title: it => { const r = list[it[0].dataIndex]; return `${fmtDateK(r.date)}${r.start ? ' ' + r.start : ''}`; } } });
+  drawBestChart(common, grid, tickC);
+  drawChart('chAch', { type: 'bar', data: { labels, datasets: [
+      { type: 'bar', label: '달성 횟수', data: view.map(r => r.achieved), backgroundColor: view.map(r => r.achieved > 0 ? C.ok + 'b3' : C.try + '99'), borderRadius: 4, yAxisID: 'y', order: 2,
+        minBarLength: 3 },
+      { type: 'line', label: '최고 랠리', data: view.map(r => r.best), borderColor: C.best, backgroundColor: C.best, pointRadius: 2, tension: .3, borderWidth: 2.2, yAxisID: 'y1', order: 1 },
+      { type: 'line', label: '목표 랠리', data: view.map(r => r.target), borderColor: 'rgba(250,204,21,.7)', borderDash: [5, 4], pointRadius: 0, borderWidth: 1.5, yAxisID: 'y1', order: 1 }
+    ] }, options: { ...common, plugins: { ...common.plugins, tooltip: tipTitle(view) }, scales: { ...common.scales,
+      y: { beginAtZero: true, ticks: { color: tickC, precision: 0 }, grid, title: { display: true, text: '달성(회)', color: tickC } },
+      y1: { position: 'right', beginAtZero: true, ticks: { color: tickC }, grid: { display: false }, title: { display: true, text: '랠리(회)', color: tickC } } } } });
+  const dates = uniqDates(); const gapD = dates.slice(1).map((d, i) => ({ date: d, gap: daysBetween(dates[i], d) }));
+  const gv = statsRange ? gapD.slice(-statsRange) : gapD, gaps = gapD.map(g => g.gap), gma = rolling(gaps, 5).slice(gaps.length - gv.length);
+  drawChart('chGap', { type: 'bar', data: { labels: gv.map(g => g.date.slice(5).replace('-', '/')), datasets: [
+      { type: 'bar', label: '경과일', data: gv.map(g => g.gap), backgroundColor: gv.map(g => g.gap <= 2 ? C.ok + 'a6' : g.gap <= 4 ? C.best + 'a6' : C.try + 'a6'), borderRadius: 4, order: 2 },
+      { type: 'line', label: '이동평균(5회)', data: gma.map(v => +v.toFixed(2)), borderColor: C.gold, pointRadius: 0, tension: .3, borderWidth: 2.4, order: 1 }
+    ] }, options: { ...common, scales: { ...common.scales, y: { beginAtZero: true, ticks: { color: tickC, callback: v => v + '일' }, grid } } } });
+  const mins = ss.map(r => r.minutes), mma = rolling(mins, 5).slice(ss.length - view.length);
+  drawChart('chMin', { type: 'bar', data: { labels, datasets: [
+      { type: 'bar', label: '운동 시간', data: view.map(r => r.minutes), backgroundColor: view.map(r => r.plan_min && r.minutes >= r.plan_min - .5 ? C.acc + '99' : '#64748b99'), borderRadius: 4, order: 2 },
+      { type: 'line', label: '계획 시간', data: view.map(r => r.plan_min || null), borderColor: 'rgba(250,204,21,.7)', borderDash: [5, 4], pointRadius: 0, borderWidth: 1.5, order: 1, spanGaps: true },
+      { type: 'line', label: '이동평균(5회)', data: mma.map(v => +v.toFixed(1)), borderColor: C.vio, pointRadius: 0, tension: .3, borderWidth: 2.2, order: 1 }
+    ] }, options: { ...common, plugins: { ...common.plugins, tooltip: tipTitle(view) }, scales: { ...common.scales, y: { beginAtZero: true, ticks: { color: tickC, callback: v => v + '분' }, grid } } } });
+  const dow = [0, 0, 0, 0, 0, 0, 0]; dates.forEach(d => dow[parseYmd(d).getDay()]++);
+  drawChart('chDow', { type: 'bar', data: { labels: WD, datasets: [{ label: '운동일 수', data: dow, backgroundColor: dow.map((_, i) => i === 0 ? C.p2 + 'b3' : i === 6 ? C.p1 + 'b3' : C.acc + '99'), borderRadius: 6 }] },
+    options: { ...common, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: tickC }, grid: { display: false } }, y: { beginAtZero: true, ticks: { color: tickC, precision: 0 }, grid } } } });
+}
+/* ---------- 최고 랠리 추세 ---------- */
+function dailyBest() {
+  const dm = dayMap(), t = todayStr();
+  return [...dm.keys()].filter(d => d <= t).sort().map(d => { const i = dm.get(d); return { date: d, best: i.best, target: Math.max(...i.list.map(r => r.target)), n: i.list.length }; }).filter(x => x.best > 0);
+}
+function pbHistory(days = dailyBest()) { let max = 0; const out = []; for (const d of days) if (d.best > max) { out.push({ ...d, prev: max }); max = d.best; } return out; }
+function slope(ys) { const n = ys.length; if (n < 3) return null; const mx = (n - 1) / 2, my = avg(ys); let a = 0, b = 0; ys.forEach((y, i) => { a += (i - mx) * (y - my); b += (i - mx) ** 2; }); return b ? a / b : 0; }
+function renderBestKpi() {
+  const days = dailyBest(), hist = pbHistory(days), t = todayStr();
+  const box = (k, v, sub, color = '#f1f5f9') => `<div class="rounded-xl bg-slate-800/60 p-2.5"><div class="text-[10.5px] text-slate-400">${k}</div><div class="text-xl font-black tabular-nums" style="color:${color}">${v}</div><div class="text-[10.5px] text-slate-500">${sub}</div></div>`;
+  if (!days.length) { $('#bestKpi').innerHTML = '<p class="col-span-full text-sm text-slate-400">최고 랠리 기록이 없습니다.</p>'; $('#pbCount').textContent = ''; $('#pbList').innerHTML = ''; return; }
+  const pb = hist[hist.length - 1], b = days.map(d => d.best);
+  const r5 = avg(b.slice(-5)), p5 = b.length > 5 ? avg(b.slice(-10, -5)) : null, chg = p5 ? (r5 - p5) / p5 * 100 : null;
+  const sl = slope(b.slice(-10));
+  const since = daysBetween(pb.date, t), after = days.filter(d => d.date > pb.date).length;
+  const last30 = days.filter(d => daysBetween(d.date, t) < 30), m30 = last30.length ? Math.max(...last30.map(d => d.best)) : 0;
+  $('#bestKpi').innerHTML =
+    box('👑 최고 기록', fmtNum(pb.best) + '회', fmtDateK(pb.date).slice(2), C.gold) +
+    box('📈 최근 5일 평균', fmtNum(r5) + '회', chg == null ? '비교 데이터 부족' : `직전 5일 대비 ${chg >= 0 ? '▲' : '▼'}${Math.abs(chg).toFixed(0)}%`, chg == null ? '#f1f5f9' : chg >= 0 ? C.ok : C.try) +
+    box('🧭 추세 (최근 10일)', sl == null ? '-' : `${sl >= 0 ? '+' : '−'}${Math.abs(sl).toFixed(1)}`, sl == null ? '운동일 3일 이상 필요' : `회/운동일 · ${sl > 2 ? '상승' : sl < -2 ? '하락' : '보합'}`, sl == null ? '#f1f5f9' : sl > 2 ? C.ok : sl < -2 ? C.try : '#f1f5f9') +
+    box('⏳ 최고 경신 후', since === 0 ? '오늘!' : since + '일', `이후 ${after}일 운동 · 최근 30일 최고 ${fmtNum(m30)}회`);
+  $('#pbCount').textContent = `(${hist.length}회)`;
+  $('#pbList').innerHTML = hist.slice().reverse().map((h, i) => `<div class="flex items-center gap-2 rounded-xl bg-slate-900 border border-slate-800 px-3 py-1.5">
+      <span class="text-base">${i === 0 ? '👑' : '🏅'}</span><span class="font-black tabular-nums text-yellow-300 w-16">${fmtNum(h.best)}회</span>
+      <span class="text-xs text-slate-400 flex-1">${fmtDateK(h.date)}</span><span class="text-[11px] ${h.prev ? 'text-emerald-300' : 'text-slate-500'}">${h.prev ? '+' + fmtNum(h.best - h.prev) : '첫 기록'}</span></div>`).join('');
+}
+function drawBestChart(common, grid, tickC) {
+  const days = dailyBest(), view = statsRange ? days.slice(-statsRange) : days, off = days.length - view.length;
+  const pbDates = new Set(pbHistory(days).map(h => h.date));
+  let mx = 0; const run = days.map(d => (mx = Math.max(mx, d.best))).slice(off);
+  const ma = rolling(days.map(d => d.best), 5).slice(off);
+  drawChart('chBest', { type: 'bar', data: { labels: view.map(d => d.date.slice(5).replace('-', '/')), datasets: [
+      { type: 'bar', label: '그날 최고', data: view.map(d => d.best), backgroundColor: view.map(d => pbDates.has(d.date) ? C.gold + 'e6' : d.best >= d.target ? C.best + 'b3' : '#64748bb3'), borderRadius: 4, order: 3 },
+      { type: 'line', label: '최고 기록', data: run, borderColor: C.gold, stepped: true, pointRadius: 0, borderWidth: 2, order: 1 },
+      { type: 'line', label: '이동평균(5일)', data: ma.map(v => Math.round(v)), borderColor: C.vio, pointRadius: 0, tension: .3, borderWidth: 2.2, order: 2 },
+      { type: 'line', label: '목표', data: view.map(d => d.target), borderColor: 'rgba(52,211,153,.75)', borderDash: [5, 4], pointRadius: 0, borderWidth: 1.5, order: 2 }
+    ] }, options: { ...common, plugins: { ...common.plugins, tooltip: { callbacks: { title: it => { const d = view[it[0].dataIndex]; return `${fmtDateK(d.date)}${pbDates.has(d.date) ? ' 👑 최고 경신' : ''}`; } } } },
+      scales: { ...common.scales, y: { beginAtZero: true, ticks: { color: tickC, callback: v => v + '회' }, grid } } } });
+}
+/* ---------- 결과 기록 폼: 운동 종료 후(session) / 오늘의 최고 랠리 기록 ---------- */
+function openQuickBest(date = todayStr(), opts = {}) {
+  const S = !!opts.session, T0 = S ? sess.target : tgtSetting();
+  const mins0 = S ? Math.max(1, Math.round(elapsed() / 60000)) : durSetting();
+  let acted = false;
+  const m = openModal({ title: S ? '🏁 운동 결과 기록' : date === todayStr() ? '🏆 오늘의 최고 랠리 기록' : '🏆 최고 랠리 기록',
+    onClose: () => { if (S && !acted && opts.wasRunning) resumeSession(); },
+    body: `<form class="space-y-3" novalidate>
+      ${S ? `<div class="grid grid-cols-2 gap-2 text-center"><div class="rounded-xl bg-slate-800/60 p-2"><div class="text-[10px] text-slate-400">운동일</div><div class="font-black">${fmtDateK(date)}</div></div>
+        <div class="rounded-xl bg-slate-800/60 p-2"><div class="text-[10px] text-slate-400">⏱️ 타이머 기록</div><div class="font-black">${mmss(elapsed())} <span class="text-xs text-slate-400">/ ${sess.planMin}분</span></div></div></div>
+        <input type="hidden" name="date" value="${date}">`
+      : `<p class="text-[12px] text-slate-400">그날 목표 랠리를 몇 번 달성했는지와 가장 길었던 랠리 수를 함께 기록합니다.</p>
+        <label class="fld">날짜<input type="date" name="date" class="inp" max="${todayStr()}" value="${date}"></label>
+        <div data-exist hidden class="rounded-xl border border-amber-500/40 bg-amber-500/10 p-2.5 text-[12px] text-amber-200 space-y-1.5"></div>`}
+      <label class="fld">🎯 목표 랠리<div class="grid grid-cols-4 gap-1.5">${TGT_PRESETS.map(n => `<button type="button" class="btn btn-sm" data-t="${n}">${n}</button>`).join('')}</div>
+        <input type="number" name="target" min="1" inputmode="numeric" class="inp text-center mt-1" value="${T0}"></label>
+      <div class="fld">✅ 목표 달성 횟수
+        <div class="flex items-center gap-2"><button type="button" class="icon-btn !w-14 !h-14 text-2xl" data-ach="-1">−</button>
+          <input type="number" name="achieved" min="0" step="1" inputmode="numeric" class="inp text-center text-4xl font-black !text-lime-300 !min-h-[64px]" value="0">
+          <button type="button" class="icon-btn !w-14 !h-14 text-2xl" data-ach="1">＋</button></div></div>
+      <label class="fld">🏆 최고 랠리 (회)<input type="number" name="best" min="1" step="1" inputmode="numeric" class="inp text-center text-4xl font-black !text-sky-300 !min-h-[64px]" placeholder="0"></label>
+      <div class="grid grid-cols-4 gap-1.5">${TGT_PRESETS.map(n => `<button type="button" class="btn btn-sm" data-q="${n}">${n}</button>`).join('')}</div>
+      <p class="text-[11px] text-slate-500 -mt-1">🏸 랠리 1회 = 두 사람이 각각 1번씩 실수 없이 넘긴 왕복 (타격 2회)</p>
+      <p data-hint class="text-[11.5px] min-h-[16px]"></p>
+      <label class="fld">운동 시간(분)${S ? ' — 타이머 기준, 필요 시 수정' : ''}<input type="number" name="minutes" min="1" inputmode="numeric" class="inp text-center" value="${mins0}"></label>
+      <div class="fld">오늘 컨디션<div class="grid grid-cols-5 gap-1.5">${MOODS.map(e => `<button type="button" class="btn text-2xl !px-0" data-mood="${e}">${e}</button>`).join('')}</div></div>
+      <label class="fld">메모<input name="memo" maxlength="200" class="inp" placeholder="한줄 메모"></label>
+      ${S ? `<button type="submit" class="btn btn-primary w-full !min-h-[58px] text-lg">💾 결과 저장</button>
+        <div class="grid grid-cols-2 gap-2"><button type="button" class="btn" data-cont>▶ 계속 운동</button><button type="button" class="btn" data-drop>🗑️ 저장 안 함</button></div>`
+      : `<div class="grid grid-cols-2 gap-2"><button type="button" class="btn" data-x>취소</button><button type="submit" class="btn btn-primary">저장</button></div>`}</form>` });
+  const f = $('form', m.body), F = n => f.elements[n];
+  let mode = 'new', target = null, mood = '';                       // 그날 기존 기록이 있으면 'edit' (중복 집계 방지)
+  const paintMood = () => $$('[data-mood]', f).forEach(x => x.classList.toggle('on', x.dataset.mood === mood));
+  const hint = () => {
+    const T = Math.max(1, num(F('target').value, T0)), a = Math.round(num(F('achieved').value)), b = Math.round(num(F('best').value)), pb = allBest(records.filter(r => !(mode === 'edit' && target && r.id === target.id))), el = $('[data-hint]', f);
+    $$('[data-t]', f).forEach(x => x.classList.toggle('on', +x.dataset.t === T));
+    if (a > 0 && b && b < T) { el.className = 'text-[11.5px] text-amber-300'; el.textContent = `⚠️ 목표를 ${a}번 달성했다면 최고 랠리는 ${T}회 이상이어야 합니다`; }
+    else if (b && pb && b > pb) { el.className = 'text-[11.5px] text-yellow-300'; el.textContent = `👑 최고 기록 ${pb}회 경신! (+${b - pb})`; }
+    else if (b && pb) { el.className = 'text-[11.5px] text-slate-400'; el.textContent = `최고 기록 ${pb}회까지 ${pb - b}회`; }
+    else el.textContent = '';
+  };
+  const loadDay = () => {
+    const box = $('[data-exist]', f); if (!box) { hint(); return; }
+    const d = F('date').value, list = records.filter(r => r.date === d).sort(byDT);
+    target = list[list.length - 1] || null;
+    if (!target) { mode = 'new'; box.hidden = true; hint(); return; }
+    box.hidden = false;
+    box.innerHTML = `<div>이 날짜에 운동 기록이 이미 있습니다 (달성 ${target.achieved}회 · 최고 ${target.best}회 · ${Math.round(target.minutes)}분)</div>
+      <div class="grid grid-cols-2 gap-1.5"><button type="button" class="btn btn-sm" data-mode="edit">기존 기록 수정</button><button type="button" class="btn btn-sm" data-mode="new">새 운동 추가</button></div>`;
+    const setMode = md => {
+      mode = md; $$('[data-mode]', box).forEach(x => x.classList.toggle('on', x.dataset.mode === md));
+      if (md === 'edit') { F('target').value = target.target; F('achieved').value = target.achieved; F('best').value = target.best || ''; F('minutes').value = Math.round(target.minutes); F('memo').value = target.memo; mood = target.mood; paintMood(); }
+      hint();
+    };
+    $$('[data-mode]', box).forEach(x => x.onclick = () => setMode(x.dataset.mode));
+    setMode('edit');
+  };
+  $$('[data-t]', f).forEach(b => b.onclick = () => { F('target').value = b.dataset.t; hint(); });
+  $$('[data-ach]', f).forEach(b => b.onclick = () => { F('achieved').value = Math.max(0, Math.round(num(F('achieved').value)) + +b.dataset.ach); hint(); });
+  $$('[data-q]', f).forEach(b => b.onclick = () => { F('best').value = b.dataset.q; hint(); });
+  $$('[data-mood]', f).forEach(b => b.onclick = () => { mood = mood === b.dataset.mood ? '' : b.dataset.mood; paintMood(); });
+  ['target', 'achieved', 'best'].forEach(k => F(k).addEventListener('input', hint));
+  if (!S) { F('date').addEventListener('change', loadDay); $('[data-x]', f).onclick = () => m.close(); }
+  else {
+    $('[data-cont]', f).onclick = () => { acted = true; m.close(); if (sess.timeUp) extendSession(5); else resumeSession(); };
+    $('[data-drop]', f).onclick = async () => {
+      if (!await askConfirm('이번 운동을 기록하지 않고 종료할까요?', { ok: '종료', danger: true })) return;
+      acted = true; m.close(); stopAlarm(); wakeOff(); sess = idleSess(); saveSess(); renderSession(); toast('기록 없이 종료했습니다');
+    };
+  }
+  loadDay();
+  f.onsubmit = e => {
+    e.preventDefault();
+    const best = Math.round(num(F('best').value)), a = Math.max(0, Math.round(num(F('achieved').value))), T = Math.max(1, Math.round(num(F('target').value, T0))), d = F('date').value;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || d > todayStr()) return toast('날짜를 확인해 주세요', 'warn');
+    if (best <= 0) return toast('최고 랠리 수를 입력해 주세요', 'warn');
+    if (a > 0 && best < T) return toast(`목표를 달성했다면 최고 랠리는 ${T}회 이상이어야 합니다`, 'warn');
+    if (a === 0 && best >= T) return toast(`최고 랠리가 ${best}회면 목표(${T}회)를 1번 이상 달성한 것입니다`, 'warn');
+    const minutes = Math.max(1, num(F('minutes').value, mins0)), memo = F('memo').value.trim();
+    acted = true; m.close();
+    if (S) { saveSessionRecord({ target: T, achieved: a, best, attempts: Math.max(a, 1), minutes, mood, memo }); return; }
+    const prevBest = allBest(records.filter(r => !(mode === 'edit' && target && r.id === target.id)));
+    const rec = mode === 'edit' && target
+      ? saveRecord({ ...target, target: T, achieved: a, best, minutes, mood, memo, attempts: Math.max(target.attempts, a, 1) })
+      : saveRecord({ id: uid(), date: d, start: '', minutes, plan_min: durSetting(), target: T, achieved: a, best, attempts: Math.max(a, 1), total_hits: 0, rallies: '', mood, memo });
+    if (prevBest > 0 && rec.best > prevBest) { sfx.fanfare(); confetti(150); toast(`👑 최고 기록 경신! ${rec.best}회 (+${rec.best - prevBest})`, 'party', 3500); }
+    else if (a > 0) { sfx.mile(); toast(`🎉 ${fmtDateK(d)} · 목표 ${T}회 ${a}번 달성 · 최고 ${rec.best}회`, 'ok', 3000); }
+    else toast(`💪 ${fmtDateK(d)} 최고 랠리 ${rec.best}회 기록 · 목표까지 ${T - rec.best}회`, 'ok', 3000);
+  };
+}
+function rolling(arr, n) { return arr.map((_, i) => avg(arr.slice(Math.max(0, i - n + 1), i + 1))); }
+function drawChart(id, cfg) { if (charts[id]) charts[id].destroy(); charts[id] = new Chart(document.getElementById(id), cfg); }
+function renderHeat() {
+  const W = 18, dm = dayMap(), t = parseYmd(todayStr());
+  const end = new Date(t); end.setDate(end.getDate() + (6 - end.getDay()));        // 이번 주 토요일
+  const start = new Date(end); start.setDate(start.getDate() - W * 7 + 1);
+  const colorOf = info => !info ? '' : info.ach >= 4 ? 'background:rgba(250,204,21,.75);border-color:#facc15' : info.ach >= 2 ? 'background:rgba(52,211,153,.75);border-color:#34d399' : info.ach >= 1 ? 'background:rgba(52,211,153,.38);border-color:#34d399' : 'background:rgba(251,146,60,.4);border-color:#fb923c';
+  let cells = '', months = '';
+  for (let w = 0; w < W; w++) {
+    const wd = new Date(start); wd.setDate(wd.getDate() + w * 7);
+    months += `<span>${wd.getDate() <= 7 ? (wd.getMonth() + 1) + '월' : ''}</span>`;
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(start); d.setDate(d.getDate() + w * 7 + i);
+      const ds = ymd(d), info = dm.get(ds), fut = d > t;
+      cells += `<i style="${colorOf(info)}${fut ? ';opacity:.25' : ''}${ds === todayStr() ? ';outline:1.5px solid #facc15' : ''}" title="${fmtDateK(ds)}${info ? ` · 달성 ${info.ach}회` : ''}"></i>`;
+    }
+  }
+  $('#heat').innerHTML = `<div class="grid text-[9.5px] text-slate-500 mb-1" style="grid-template-columns:repeat(${W},1fr);gap:3px">${months}</div><div class="heat" style="grid-template-columns:repeat(${W},1fr)">${cells}</div>
+    <div class="text-[10.5px] text-slate-500 mt-2 flex items-center gap-1.5 flex-wrap"><span class="lg" style="background:#0b1222;border-color:#162033"></span>휴식 <span class="lg" style="background:rgba(251,146,60,.4);border-color:#fb923c"></span>도전 <span class="lg" style="background:rgba(52,211,153,.38);border-color:#34d399"></span>1회 <span class="lg" style="background:rgba(52,211,153,.75);border-color:#34d399"></span>2~3회 <span class="lg" style="background:rgba(250,204,21,.75);border-color:#facc15"></span>4회+ · 🔥 주간 연속 ${weekStreak()}주</div>`;
+}
+
+/* =====================================================================
+ * 14. 업적 탭 (레벨 · 배지 · 명예의 전당)
+ * ===================================================================== */
+function renderLevelChip() { const lv = levelOf(totalAch()); $('#lvChip').textContent = `⭐ Lv.${lv.lv}`; $('#lvChip').title = lv.title; }
+function renderBadges() {
+  const tot = totalAch(), lv = levelOf(tot);
+  $('#lvCard').innerHTML = `<div class="flex items-center gap-3">
+      <div class="text-center flex-none"><div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-lime-500/30 to-yellow-500/20 border border-lime-500/40 flex flex-col items-center justify-center"><div class="text-[11px] text-lime-200 font-bold">LEVEL</div><div class="text-4xl font-black text-lime-200 leading-none">${lv.lv}</div></div></div>
+      <div class="flex-1 min-w-0">
+        <div class="text-xl font-black">${esc(lv.title)}</div>
+        <div class="text-[12px] text-slate-400 mb-2">누적 목표 달성 ${tot}회 ${lv.next != null ? `· 다음 「${esc(lv.nextTitle)}」까지 ${lv.next - tot}회` : '· 최고 레벨 달성! 👑'}</div>
+        <div class="pbar"><div style="width:${lv.pct}%"></div></div>
+      </div></div>
+    <div class="flex items-center gap-2 mt-3 text-[12px] text-slate-400">${pairAv(28)}<span>${esc(settings.p1.name)} · ${esc(settings.p2.name)} 팀</span></div>`;
+  const got = earnedBadges();
+  $('#bdCount').textContent = `${got.size}/${BADGES.length}`;
+  $('#bdGrid').innerHTML = BADGES.map(b => `<div class="badge ${got.has(b.id) ? 'on' : ''}"><div class="bi">${b.ic}</div><div class="text-[12px] font-extrabold mt-1 ${got.has(b.id) ? 'text-lime-100' : 'text-slate-400'}">${esc(b.nm)}</div><div class="text-[10px] text-slate-500 leading-tight mt-0.5">${esc(b.ds)}</div></div>`).join('');
+  const top = records.filter(r => r.best > 0).sort((a, b) => b.best - a.best || byDT(a, b)).slice(0, 5);
+  $('#hof').innerHTML = top.length ? top.map((r, i) => `<div class="flex items-center gap-3 rounded-xl bg-slate-900 border border-slate-800 px-3 py-2">
+      <span class="text-xl w-7 text-center">${['🥇', '🥈', '🥉', '4', '5'][i]}</span><span class="text-xl font-black tabular-nums text-sky-300 w-20">${fmtNum(r.best)}회</span>
+      <span class="text-xs text-slate-400 flex-1">${fmtDateK(r.date)}${r.start ? ' ' + r.start : ''}</span>${r.mood ? `<span>${r.mood}</span>` : ''}</div>`).join('') : '<p class="text-sm text-slate-400 text-center py-4">아직 기록이 없습니다.</p>';
+}
+
+/* =====================================================================
+ * 15. 기록 관리 (조회 · 수정 · 삭제 · 소급 입력)
+ * ===================================================================== */
+function recordRowHTML(r) {
+  const tc = tier(r.achieved), color = r.achieved >= 4 ? '#fde047' : r.achieved ? '#6ee7b7' : '#fdba74';
+  return `<div class="flex items-center gap-2 rounded-xl bg-slate-900 border border-slate-800 pl-2 pr-2 py-2">
+    <div class="cal-cell ${tc} !aspect-auto w-14 h-14 flex-none"><span class="text-2xl font-black leading-none" style="color:${color}">${r.achieved}</span><span class="cal-sub">회 달성</span></div>
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center gap-1.5 flex-wrap"><span class="font-extrabold">${r.achieved ? '🎯 달성' : '💪 도전'}</span>
+        <span class="text-[12px] text-slate-400">${r.start ? r.start + ' · ' : ''}${Math.round(r.minutes)}분${r.plan_min ? '/' + r.plan_min + '분' : ''} · 목표 ${r.target}회</span>${r.mood ? `<span>${r.mood}</span>` : ''}</div>
+      <div class="text-[11.5px] text-slate-400">🏆 최고 ${r.best}회${r.total_hits ? ` · 💥 ${fmtNum(r.total_hits)}타` : ''} · 🔥 ≈${kcal(r)}kcal</div>
+      ${r.memo ? `<div class="text-xs text-slate-300 mt-0.5 truncate">📝 ${esc(r.memo)}</div>` : ''}
+    </div>
+    <button class="icon-btn" data-edit="${esc(r.id)}" aria-label="수정">✏️</button>
+    <button class="icon-btn" data-del="${esc(r.id)}" aria-label="삭제">🗑️</button>
+  </div>`;
+}
+function mountRecordForm(root, rec, opts = {}) {
+  const st = { ...rec };
+  const nf = (name, label, extra = '') => `<label class="fld">${label}<input type="number" name="${name}" min="0" step="1" inputmode="numeric" class="inp text-center font-extrabold" ${extra}></label>`;
+  root.innerHTML = `<form class="space-y-3" novalidate>
+    <div class="grid grid-cols-2 gap-3"><label class="fld">날짜<input type="date" name="date" class="inp" required></label><label class="fld">시작 시각<input type="time" name="start" class="inp"></label></div>
+    <div class="grid grid-cols-3 gap-3">${nf('minutes', '운동 시간(분)', 'step="any"')}${nf('plan_min', '계획(분)')}${nf('target', '목표 랠리')}</div>
+    <label class="fld">랠리 목록 (선택 · 쉼표 구분 — 입력 시 아래 값 자동 계산)<input name="rallies" class="inp font-mono" placeholder="예) 262, 85, 310, 140" inputmode="numeric"></label>
+    <div class="grid grid-cols-2 gap-3">${nf('achieved', '🎯 달성 횟수')}${nf('best', '🏆 최고 랠리')}${nf('attempts', '🔁 랠리 횟수')}${nf('total_hits', '💥 총 타구')}</div>
+    <div class="fld">컨디션<div class="grid grid-cols-6 gap-1.5"><button type="button" class="btn btn-sm" data-mood="">없음</button>${MOODS.map(e => `<button type="button" class="btn btn-sm text-xl" data-mood="${e}">${e}</button>`).join('')}</div></div>
+    <label class="fld">메모<input name="memo" maxlength="200" class="inp" placeholder="한줄 메모" enterkeyhint="done"></label>
+    <div class="grid grid-cols-2 gap-2 pt-1"><button type="button" class="btn" data-act="cancel">취소</button><button type="submit" class="btn btn-primary">${esc(opts.submitLabel || '저장')}</button></div>
+  </form>`;
+  const f = $('form', root), F = n => f.elements[n];
+  ['date', 'start', 'minutes', 'plan_min', 'target', 'rallies', 'achieved', 'best', 'attempts', 'total_hits', 'memo'].forEach(k => F(k).value = st[k] ?? '');
+  if (!F('target').value) F('target').value = tgtSetting();
+  let mood = st.mood || '';
+  const paintMood = () => $$('[data-mood]', f).forEach(b => b.classList.toggle('on', b.dataset.mood === mood));
+  $$('[data-mood]', f).forEach(b => b.onclick = () => { mood = b.dataset.mood; paintMood(); }); paintMood();
+  const recalc = () => {
+    const arr = parseRallies(F('rallies').value), T = Math.max(1, num(F('target').value, 250));
+    if (!arr.length) return;
+    F('achieved').value = arr.filter(x => x >= T).length; F('best').value = Math.max(...arr); F('attempts').value = arr.length; F('total_hits').value = sum(arr);
+  };
+  F('rallies').addEventListener('input', recalc); F('target').addEventListener('input', recalc);
+  $('[data-act="cancel"]', f).onclick = opts.onCancel;
+  f.onsubmit = e => {
+    e.preventDefault();
+    const out = { ...st, id: st.id || uid(), date: F('date').value, start: F('start').value, minutes: F('minutes').value, plan_min: F('plan_min').value, target: F('target').value,
+      rallies: parseRallies(F('rallies').value).join(','), achieved: F('achieved').value, best: F('best').value, attempts: F('attempts').value, total_hits: F('total_hits').value, mood, memo: F('memo').value.trim() };
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(out.date)) return toast('날짜를 입력해 주세요', 'warn');
+    if (out.date > todayStr()) return toast('미래 날짜는 입력할 수 없습니다', 'warn');
+    if (num(out.minutes) <= 0) return toast('운동 시간을 입력해 주세요', 'warn');
+    if (num(out.achieved) > 0 && num(out.best) && num(out.best) < num(out.target)) return toast('달성 횟수가 있으면 최고 랠리는 목표 이상이어야 합니다', 'warn');
+    opts.onSave && opts.onSave(out);
+  };
+}
+function openRecordModal(rec, defaults = {}) {
+  const isNew = !rec;
+  const base = rec ? { ...rec } : { date: todayStr(), minutes: durSetting(), plan_min: durSetting(), target: tgtSetting(), ...defaults };
+  const m = openModal({ title: isNew ? '＋ 운동 기록 추가' : '✏️ 운동 기록 수정', body: '<div data-f></div>' });
+  mountRecordForm($('[data-f]', m.body), base, { submitLabel: isNew ? '추가' : '수정 저장', onCancel: () => m.close(),
+    onSave: out => { saveRecord(out); m.close(); toast(isNew ? '기록을 추가했습니다' : '기록을 수정했습니다', 'ok'); } });
+}
+function renderHistory() {
+  const months = [...new Set(records.map(r => r.date.slice(0, 7)))].sort().reverse();
+  const sel = $('#hMonth');
+  if (histMonth !== 'all' && !months.includes(histMonth)) histMonth = 'all';
+  sel.innerHTML = `<option value="all">전체 기간</option>` + months.map(m => `<option value="${m}" ${m === histMonth ? 'selected' : ''}>${m.replace('-', '년 ')}월</option>`).join('');
+  const list = records.filter(r => histMonth === 'all' || r.date.startsWith(histMonth)).sort(byDT).reverse();
+  $('#hCount').textContent = `총 ${list.length}회 운동 · 달성 ${totalAch(list)}회 · ${Math.round(sum(list.map(r => r.minutes)))}분`;
+  const shown = list.slice(0, histLimit), groups = new Map();
+  for (const r of shown) { if (!groups.has(r.date)) groups.set(r.date, []); groups.get(r.date).push(r); }
+  $('#hList').innerHTML = shown.length ? [...groups.entries()].map(([d, rs]) =>
+    `<div><div class="text-xs font-bold text-slate-300 mb-1.5 px-1">${fmtDateK(d)}</div><div class="space-y-2">${rs.map(recordRowHTML).join('')}</div></div>`).join('')
+    : '<div class="card p-8 text-center text-slate-400">운동 기록이 없습니다.</div>';
+  $('#hMore').hidden = list.length <= histLimit;
+}
+
+/* =====================================================================
+ * 16. 설정
+ * ===================================================================== */
+function connectLink(url, token) { const p = new URLSearchParams({ gas: url }); if (token) p.set('tk', token); return `${location.origin}${location.pathname}#${p.toString()}`; }
+function gasStatusText() { return api.enabled() ? `연결됨 · 미전송 대기 ${queue.length}건${syncMsg ? ' · ' + syncMsg : ''}` : 'URL 미입력 시 이 폰에만 저장됩니다.'; }
+function openSettings() {
+  const s = settings;
+  const player = (who, label) => `<div class="rounded-xl border border-slate-800 p-3 space-y-3">
+      <div class="flex items-center gap-2">${pAv(who, 36)}<div class="text-sm font-extrabold flex-1">${label}</div></div>
+      <label class="fld">이름<input name="${who}_name" class="inp" value="${esc(s[who].name)}" maxlength="14"></label>
+      <input type="hidden" name="${who}_avatar" value="${esc(s[who].avatar)}">
+      <div class="fld">캐릭터<div class="grid grid-cols-6 gap-1.5">${Object.keys(AV).map(k => `<button type="button" class="rounded-full p-0.5 border-2 ${s[who].avatar === 'svg:' + k ? 'border-amber-400' : 'border-transparent'}" data-av="${who}" data-v="svg:${k}" title="${esc(AV[k].label)}">${svgAvatar(k, C[who], 44)}</button>`).join('')}</div>
+        <div class="flex items-center gap-2 mt-1"><span class="text-[11px]">또는 이모지</span><input class="inp !w-20 text-center text-xl !min-h-[40px] !py-1" data-emoji-for="${who}" maxlength="8" value="${s[who].avatar.startsWith('svg:') ? '' : esc(s[who].avatar)}" placeholder="🙂"></div></div></div>`;
+  const nfield = (name, label, val, min, max, step = 1) => `<label class="fld">${label}<input name="${name}" type="number" min="${min}" max="${max}" step="${step}" inputmode="numeric" class="inp" value="${val}"></label>`;
+  const chk = (name, label) => `<label class="flex items-center gap-2 text-sm min-h-[44px]"><input type="checkbox" name="${name}" class="w-5 h-5 accent-lime-500" ${s[name] ? 'checked' : ''}> ${label}</label>`;
+  const m = openModal({ title: '⚙️ 설정', wide: true, body: `<form class="space-y-5" novalidate>
+    <section class="space-y-3"><h3 class="font-extrabold text-slate-300">👫 플레이어</h3>${player('p1', '플레이어 1')}${player('p2', '플레이어 2')}</section>
+    <section class="space-y-3"><h3 class="font-extrabold text-slate-300">🏸 운동 기본값</h3>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">${nfield('durationMin', '운동 시간(분)', durSetting(), DUR_MIN, DUR_MAX)}${nfield('target', '목표 랠리(회)', tgtSetting(), TGT_MIN, TGT_MAX)}${nfield('monthlyGoal', '월 목표 운동일', s.monthlyGoal, 1, 31)}${nfield('weightKg', '체중(kg, 칼로리용)', s.weightKg, 30, 150)}</div>
+      <p class="text-[11px] text-slate-500">권장 운동 시간 30~60분. 칼로리는 MET 5.5(Compendium of Physical Activities 2011, 배드민턴 일반) 기준 추정치입니다.</p></section>
+    <section class="space-y-2"><h3 class="font-extrabold text-slate-300">🔊 소리 · 음성 · 진동</h3>
+      <div class="grid sm:grid-cols-3">${chk('sound', '효과음')}${chk('voice', '음성 안내 (시작·절반·5분 전·1분 전·종료)')}${chk('vibrate', '진동')}</div>
+      <p class="text-[11px] text-slate-500">운동 종료 알람은 효과음 설정과 관계없이 울립니다 (90초 후 자동 정지).</p></section>
+    <section class="space-y-3"><h3 class="font-extrabold text-slate-300">☁️ Google Sheets 연동 (여러 폰 공유)</h3>
+      <label class="fld">웹 앱 URL<input name="gasUrl" class="inp font-mono text-sm" placeholder="https://script.google.com/macros/s/XXXX/exec" value="${esc(s.gasUrl)}" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+      <label class="fld">API 토큰 (Code.gs의 API_TOKEN과 동일, 미사용 시 비움)<input name="token" class="inp font-mono text-sm" value="${esc(s.token)}" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+      <div class="grid grid-cols-2 gap-2">
+        <button type="button" class="btn" data-act="test">🔌 연결 테스트</button><button type="button" class="btn" data-act="sync">🔄 지금 동기화</button>
+        <button type="button" class="btn col-span-2 btn-ok" data-act="share">📲 상대방 폰 연결 링크 보내기</button>
+        <button type="button" class="btn col-span-2" data-act="push">⬆️ 이 폰의 기록 전체 업로드</button></div>
+      <p class="text-[11px] text-slate-500">탁구 앱과 별도의 배드민턴 전용 Code.gs/시트를 사용하세요 (열 구성이 다름).</p>
+      <div data-out="gas" class="text-xs text-slate-400">${esc(gasStatusText())}</div></section>
+    <section class="space-y-3"><h3 class="font-extrabold text-slate-300">🗄️ 데이터 관리</h3>
+      <div class="grid grid-cols-2 gap-2">
+        <button type="button" class="btn" data-act="json">⬇️ JSON 백업</button><button type="button" class="btn" data-act="csv">⬇️ CSV 내보내기</button>
+        <label class="btn cursor-pointer">⬆️ JSON 가져오기<input type="file" accept="application/json,.json" hidden data-act="import"></label>
+        <button type="button" class="btn" data-act="sample">🧪 샘플 생성</button>
+        <button type="button" class="btn" data-act="clearSample">샘플 삭제</button><button type="button" class="btn btn-danger" data-act="wipe">이 폰 데이터 초기화</button></div>
+      <p class="text-[11px] text-slate-500">초기화는 이 폰의 캐시만 지우며 Google Sheets 원본에는 영향이 없습니다.</p></section>
+    <div class="grid grid-cols-2 gap-2 sticky bottom-0 bg-slate-900 py-3"><button type="button" class="btn" data-act="close">닫기</button><button type="submit" class="btn btn-primary">설정 저장</button></div>
+  </form>` });
+  const f = $('form', m.body), F = n => f.elements[n];
+  $$('[data-av]', f).forEach(b => b.onclick = () => {
+    const who = b.dataset.av; F(who + '_avatar').value = b.dataset.v;
+    $$(`[data-av="${who}"]`, f).forEach(x => { x.classList.toggle('border-amber-400', x === b); x.classList.toggle('border-transparent', x !== b); });
+    $(`[data-emoji-for="${who}"]`, f).value = '';
+  });
+  $$('[data-emoji-for]', f).forEach(inp => inp.oninput = () => {
+    const who = inp.dataset.emojiFor, v = inp.value.trim();
+    if (v) { F(who + '_avatar').value = v; $$(`[data-av="${who}"]`, f).forEach(x => { x.classList.remove('border-amber-400'); x.classList.add('border-transparent'); }); }
+  });
+  const out = $('[data-out="gas"]', f), act = a => $(`[data-act="${a}"]`, f);
+  act('close').onclick = () => m.close();
+  act('test').onclick = async () => {
+    const url = F('gasUrl').value.trim(); if (!url) return toast('웹 앱 URL을 입력해 주세요', 'warn');
+    out.textContent = '⏳ 연결 확인 중...';
+    try { const j = await api.get({ action: 'ping' }, url, F('token').value.trim()); out.innerHTML = `<span class="text-emerald-300">✅ 연결 성공 · 시트 "${esc(j.sheet)}" · ${j.count ?? '-'}행 · Code.gs v${esc(j.version || '?')}</span>`; }
+    catch (e) { out.innerHTML = `<span class="text-rose-300">❌ ${esc(e.message)}</span>`; }
+  };
+  act('sync').onclick = async () => { if (!api.enabled()) return toast('먼저 URL을 입력하고 설정을 저장해 주세요', 'warn'); await refreshFromServer(false); schedulePoll(); out.textContent = gasStatusText(); };
+  act('share').onclick = async () => {
+    const url = F('gasUrl').value.trim(); if (!url) return toast('웹 앱 URL을 먼저 입력해 주세요', 'warn');
+    const link = connectLink(url, F('token').value.trim());
+    try { if (navigator.share) { await navigator.share({ title: '배드민턴 랠리 클럽 시트 연결', text: '이 링크를 열면 같은 Google Sheets에 연결됩니다.', url: link }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
+    try { await navigator.clipboard.writeText(link); toast('연결 링크를 복사했습니다', 'ok'); }
+    catch { out.innerHTML = `<div class="text-slate-300 mb-1">아래 링크를 길게 눌러 복사하세요</div><div class="break-all select-all font-mono text-[11px] text-slate-200">${esc(link)}</div>`; }
+  };
+  act('push').onclick = async () => {
+    if (!api.enabled()) return toast('먼저 URL을 입력하고 설정을 저장해 주세요', 'warn');
+    const real = records.filter(r => !isSample(r)); if (!real.length) return toast('업로드할 기록이 없습니다', 'warn');
+    if (!await askConfirm(`이 폰의 운동 기록 ${real.length}건을 시트에 업로드(같은 id는 덮어쓰기)할까요?`)) return;
+    real.forEach(r => queue.push({ op: 'upsert', record: r })); store.set(K.queue, queue);
+    await flushQueue(); toast(queue.length ? '일부 업로드 실패 — 나중에 재시도됩니다' : '업로드 완료', queue.length ? 'warn' : 'ok');
+  };
+  act('json').onclick = () => download(`badminton-backup-${todayStr()}.json`, JSON.stringify(records, null, 2), 'application/json');
+  act('csv').onclick = () => {
+    const q = v => { const x = String(v ?? ''); return /[",\n]/.test(x) ? `"${x.replace(/"/g, '""')}"` : x; };
+    download(`badminton-${todayStr()}.csv`, '﻿' + [SHEET_FIELDS.join(','), ...sessions().map(r => SHEET_FIELDS.map(k => q(r[k])).join(','))].join('\n'), 'text/csv');
+  };
+  act('import').onchange = async e => {
+    const file = e.target.files[0]; if (!file) return;
+    try {
+      const list = normList(JSON.parse(await file.text()));
+      if (!await askConfirm(`운동 기록 ${list.length}건을 가져옵니다. 같은 id는 덮어씁니다.`)) return;
+      const map = new Map(records.map(r => [r.id, r])); list.forEach(r => map.set(r.id, r));
+      records = [...map.values()]; localGen++; persistRecords(); renderAll();
+      if (api.enabled()) { list.forEach(r => queue.push({ op: 'upsert', record: r })); store.set(K.queue, queue); flushQueue(); }
+      toast(`${list.length}건 가져오기 완료`, 'ok');
+    } catch (err) { toast('가져오기 실패: ' + err.message, 'error'); }
+    e.target.value = '';
+  };
+  act('sample').onclick = () => { records = records.filter(r => !isSample(r)).concat(makeSample()); store.set(K.sample, true); persistRecords(); renderAll(); toast('샘플 데이터 생성 완료 (시트 업로드 안 됨)', 'ok'); };
+  act('clearSample').onclick = clearSample;
+  act('wipe').onclick = async () => {
+    if (!await askConfirm('이 폰의 모든 기록 캐시와 미전송 대기열을 삭제합니다. (설정은 유지)', { ok: '초기화', danger: true })) return;
+    records = []; queue = []; localGen++; lastRev = ''; store.del(K.rev); store.set(K.queue, queue); store.del(K.sample); persistRecords(); renderAll();
+    toast('이 폰의 데이터를 초기화했습니다'); if (api.enabled()) refreshFromServer(false);
+  };
+  f.onsubmit = async e => {
+    e.preventDefault();
+    const prevUrl = settings.gasUrl, prevToken = settings.token;
+    const n = (k, d, a, b) => clamp(Math.round(num(F(k).value, d)), a, b);
+    settings = { ...settings,
+      p1: { name: F('p1_name').value.trim() || DEFAULT_SETTINGS.p1.name, avatar: F('p1_avatar').value || DEFAULT_SETTINGS.p1.avatar },
+      p2: { name: F('p2_name').value.trim() || DEFAULT_SETTINGS.p2.name, avatar: F('p2_avatar').value || DEFAULT_SETTINGS.p2.avatar },
+      durationMin: n('durationMin', 40, DUR_MIN, DUR_MAX), target: n('target', 250, TGT_MIN, TGT_MAX), monthlyGoal: n('monthlyGoal', 12, 1, 31), weightKg: n('weightKg', 65, 30, 150),
+      sound: F('sound').checked, voice: F('voice').checked, vibrate: F('vibrate').checked,
+      gasUrl: F('gasUrl').value.trim(), token: F('token').value.trim() };
+    saveSettings(); m.close(); renderSession(); renderAll(); toast('설정을 저장했습니다', 'ok');
+    if (settings.gasUrl && (settings.gasUrl !== prevUrl || settings.token !== prevToken)) await connectGas();
+    else if (!settings.gasUrl) { clearTimeout(pollTimer); setStatus('local'); }
+  };
+}
+function download(name, text, mime) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: mime + ';charset=utf-8' }));
+  a.download = name; document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+function clearSample() { records = records.filter(r => !isSample(r)); store.del(K.sample); persistRecords(); renderAll(); toast('샘플 데이터를 삭제했습니다'); }
+async function connectGas() {
+  clearTimeout(pollTimer); setStatus('sync');
+  try {
+    const res = await api.list(); const data = normList(res.data || []);
+    if (res.rev != null) { lastRev = String(res.rev); store.set(K.rev, lastRev); }
+    const real = records.filter(r => !isSample(r));
+    if (!data.length && real.length) {
+      if (await askConfirm(`연결된 시트가 비어 있습니다.\n이 폰의 기록 ${real.length}건을 시트에 업로드할까요?\n(취소 시 이 폰 기록은 백업 후 시트 데이터로 교체)`, { ok: '업로드' })) {
+        queue = real.map(r => ({ op: 'upsert', record: r })); store.set(K.queue, queue);
+        records = real; localGen++; persistRecords(); store.del(K.sample); await flushQueue(); renderAll();
+        toast(queue.length ? '업로드 실패 — 자동 재시도 예정' : `${real.length}건 업로드 완료`, queue.length ? 'warn' : 'ok');
+        schedulePoll(); return;
+      }
+      store.set('bd.backup.' + Date.now(), real);
+    }
+    records = data; localGen++; persistRecords(); store.del(K.sample); store.set(K.lastSync, Date.now());
+    setStatus('ok'); renderAll(); toast(`Google Sheets 연결 완료 · ${records.length}건 불러옴`, 'ok');
+  } catch (e) { setStatus('error', e.message); toast('연결 실패: ' + e.message, 'error'); }
+  schedulePoll();
+}
+async function applyConnectLink() {
+  if (!/(^#|&)gas=/.test(location.hash)) return false;
+  const p = new URLSearchParams(location.hash.slice(1));
+  const url = (p.get('gas') || '').trim(), tk = (p.get('tk') || '').trim();
+  try { history.replaceState(null, '', location.pathname + location.search); } catch {}
+  if (!/^https:\/\/script\.google\.com\/.+\/exec$/.test(url)) { toast('연결 링크 형식이 올바르지 않습니다', 'error'); return false; }
+  if (url === settings.gasUrl && tk === settings.token) { toast('이미 같은 시트에 연결되어 있습니다', 'ok'); return false; }
+  if (!await askConfirm(`상대방이 보낸 Google Sheets에 연결할까요?\n\n${url.slice(0, 70)}…`, { ok: '연결', title: '시트 연결' })) return false;
+  settings.gasUrl = url; settings.token = tk; saveSettings(); await connectGas(); return true;
+}
+
+/* =====================================================================
+ * 17. 샘플 데이터 (최초 실행 시 화면 미리보기용)
+ * ===================================================================== */
+function makeSample() {
+  const rand = mulberry32(20261018), out = [];
+  const today = new Date(), d = new Date(today); d.setDate(d.getDate() - 110);
+  let k = 0;
+  while (d < today) {
+    const prog = k / 45, mean = 110 + prog * 140;                       // 실력 향상 추세
+    const T = 250, plan = [30, 40, 40, 50, 60][Math.floor(rand() * 5)];
+    const minutes = round1(plan * (0.85 + rand() * 0.2));
+    const n = 3 + Math.floor(rand() * 7), rs = [];
+    for (let i = 0; i < n; i++) rs.push(Math.min(980, Math.max(4, Math.round(-Math.log(1 - rand() * .995) * mean))));
+    const start = ['06:40', '07:30', '10:00', '16:20', '19:30', '21:10'][Math.floor(rand() * 6)];
+    out.push({ id: 'sample-' + String(++k).padStart(5, '0'), date: ymd(d), start, minutes, plan_min: plan, target: T, rallies: rs.join(','),
+      achieved: rs.filter(x => x >= T).length, mood: rand() < .5 ? MOODS[Math.floor(rand() * 3)] : '', memo: rand() < .08 ? '바람 없어서 랠리 잘 됨' : '' });
+    d.setDate(d.getDate() + 1 + Math.floor(rand() * 4));
+  }
+  return out.map(norm);
+}
+
+/* =====================================================================
+ * 18. 렌더 / 탭 / 이벤트 바인딩
+ * ===================================================================== */
+function renderAll() {
+  renderCalendar(); renderHistory(); renderStatus(); renderDayModal(); renderLevelChip();
+  if (!live()) renderIdle();
+  if (activeTab === 'stats') renderStats();
+  if (activeTab === 'badge') renderBadges();
+}
+function switchTab(t) {
+  activeTab = t;
+  $$('#tabs .tab-btn').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
+  ['run', 'stats', 'badge', 'history'].forEach(x => { $('#tab-' + x).hidden = x !== t; });
+  if (t === 'stats') renderStats();
+  if (t === 'badge') renderBadges();
+  if (window.innerWidth < 1024) window.scrollTo({ top: Math.max(0, $('main').offsetTop - 64), behavior: 'smooth' });
+}
+function bindSeg(id, cb) { $$('#' + id + ' .seg-btn').forEach(b => b.onclick = () => { $$('#' + id + ' .seg-btn').forEach(x => x.classList.toggle('on', x === b)); cb(b.dataset.v); }); }
+function setDur(v) { settings.durationMin = clamp(v, DUR_MIN, DUR_MAX); saveSettings(); renderIdle(); }
+function setTgt(v) { settings.target = clamp(v, TGT_MIN, TGT_MAX); saveSettings(); renderIdle(); }
+let deferredInstall = null;
+function bind() {
+  $('#calPrev').onclick = () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1); renderCalendar(); };
+  $('#calNext').onclick = () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1); renderCalendar(); };
+  $('#calToday').onclick = () => { const d = new Date(); calMonth = new Date(d.getFullYear(), d.getMonth(), 1); renderCalendar(); };
+  $('#calToggle').onclick = () => { calCollapsed = !calCollapsed; store.set(K.cal, calCollapsed); renderCalendar(); };
+  $('#calGrid').addEventListener('click', e => { const c = e.target.closest('[data-date]'); if (c) openDayModal(c.dataset.date); });
+  let sx = null, sy = null;
+  $('#calGrid').addEventListener('touchstart', e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+  $('#calGrid').addEventListener('touchend', e => {
+    if (sx == null) return; const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; sx = null;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) (dx < 0 ? $('#calNext') : $('#calPrev')).click();
+  });
+  $$('#tabs .tab-btn').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
+  // 준비 화면
+  $$('[data-dur]').forEach(b => b.onclick = () => setDur(+b.dataset.dur));
+  $$('[data-tgt]').forEach(b => b.onclick = () => setTgt(+b.dataset.tgt));
+  $('#iDurMinus').onclick = () => setDur(durSetting() - 5); $('#iDurPlus').onclick = () => setDur(durSetting() + 5);
+  $('#iTgtMinus').onclick = () => setTgt(tgtSetting() - 50); $('#iTgtPlus').onclick = () => setTgt(tgtSetting() + 50);
+  $('#iStart').onclick = startSession;
+  $('#iBest').onclick = () => openQuickBest(todayStr());
+  // 진행 화면
+  $('#tPause').onclick = () => sess.status === 'running' ? pauseSession() : resumeSession();
+  $('#tExt').onclick = () => extendSession(5);
+  $('#tEnd').onclick = openEndModal;
+  // 추세
+  bindSeg('segRange', v => { statsRange = +v; renderStats(); });
+  // 기록
+  $('#hMonth').onchange = e => { histMonth = e.target.value; histLimit = 40; renderHistory(); };
+  $('#hMore').onclick = () => { histLimit += 40; renderHistory(); };
+  $('#bBackdate').onclick = () => openRecordModal(null);
+  document.addEventListener('click', async e => {
+    const ed = e.target.closest('[data-edit]');
+    if (ed) { const r = records.find(x => x.id === ed.dataset.edit); if (r) openRecordModal(r); return; }
+    const dl = e.target.closest('[data-del]');
+    if (dl) {
+      const r = records.find(x => x.id === dl.dataset.del); if (!r) return;
+      if (await askConfirm(`${fmtDateK(r.date)} 운동 기록(달성 ${r.achieved}회 · ${Math.round(r.minutes)}분)을 삭제할까요?`, { ok: '삭제', danger: true })) { deleteRecord(r.id); toast('삭제했습니다'); }
+    }
+  });
+  // 헤더
+  $('#btnSettings').onclick = openSettings;
+  $('#lvChip').onclick = () => switchTab('badge');
+  $('#syncChip').onclick = async () => { if (!api.enabled()) return openSettings(); await refreshFromServer(false); schedulePoll(); };
+  $('#btnClearSample').onclick = clearSample;
+  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; $('#btnInstall').hidden = false; });
+  $('#btnInstall').onclick = async () => { if (!deferredInstall) return; deferredInstall.prompt(); try { await deferredInstall.userChoice; } catch {} deferredInstall = null; $('#btnInstall').hidden = true; };
+  window.addEventListener('appinstalled', () => { $('#btnInstall').hidden = true; toast('홈 화면에 설치되었습니다', 'ok'); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      checkDayRollover();
+      if (sess.status === 'running') wakeOn();
+      tick();
+      if (!api.enabled()) return;
+      if (Date.now() - store.get(K.lastSync, 0) > 60000) refreshFromServer(true);
+      schedulePoll(0);
+    } else { clearTimeout(pollTimer); pollTimer = null; }
+  });
+  window.addEventListener('pageshow', e => { checkDayRollover(); if (e.persisted && api.enabled()) schedulePoll(0); });
+  setInterval(() => { if (document.visibilityState === 'visible') checkDayRollover(); }, 60000);
+  window.addEventListener('online', () => { flushQueue(); schedulePoll(0); });
+  window.addEventListener('beforeunload', e => { if (sess && sess.status === 'running') { e.preventDefault(); e.returnValue = ''; } });
+}
+function checkDayRollover() {
+  const t = todayStr();
+  if (t !== shownDay) { shownDay = t; const d = new Date(); calMonth = new Date(d.getFullYear(), d.getMonth(), 1); renderAll(); }
+}
+
+/* =====================================================================
+ * 19. 초기화
+ * ===================================================================== */
+function init() {
+  if (window.Chart) { Chart.defaults.color = '#cbd5e1'; Chart.defaults.font.family = getComputedStyle(document.body).fontFamily; }
+  const saved = store.get(K.records, null);
+  if (Array.isArray(saved)) records = normList(saved);
+  else if (!settings.gasUrl && !/(^#|&)gas=/.test(location.hash)) { records = makeSample(); store.set(K.sample, true); persistRecords(); }
+  saveSettings();
+  const ss = store.get(K.sess, null);
+  sess = ss && ['running', 'paused'].includes(ss.status) && Array.isArray(ss.rallies) ? { ...idleSess(), ...ss } : idleSess();
+  saveSess();
+  bind(); renderSession(); renderAll();
+  if (live()) { toast('진행 중이던 운동을 이어갑니다', 'ok'); if (sess.status === 'running') wakeOn(); }
+  (async () => {
+    const linked = await applyConnectLink();
+    if (!api.enabled() || linked) return;
+    await refreshFromServer(true); schedulePoll(0);
+  })();
+  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+  }
+}
+init();
+</script>
+</body>
+</html>
