@@ -1,5 +1,5 @@
 /* 북한산 배드민턴 랠리 클럽 — 서비스 워커 (오프라인 실행 / 홈 화면 앱) */
-const CACHE = 'bd-cache-v3';   // 같은 github.io 주소의 탁구 앱 캐시(pp-cache)는 건드리지 않음
+const CACHE = 'bm-cache-v1';   // 같은 github.io 주소의 탁구 앱 캐시(pp-cache)는 건드리지 않음
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon-192.png?v=1', './icon-512.png?v=1'];
 const CDN = /(^|\.)cdn\.tailwindcss\.com$|(^|\.)cdn\.jsdelivr\.net$/;
 
